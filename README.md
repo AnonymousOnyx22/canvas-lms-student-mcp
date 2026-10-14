@@ -6,6 +6,8 @@ This is a free, open source [MCP](https://modelcontextprotocol.io) server. It le
 
 Works with any school that uses Canvas. Not affiliated with Instructure.
 
+Free forever. No sign up and no subscription. Your login details only ever go to your own school.
+
 ## Quick start
 
 1. In Canvas, go to **Account > Settings**, scroll to **Approved Integrations** and click **New Access Token**. Copy it.
