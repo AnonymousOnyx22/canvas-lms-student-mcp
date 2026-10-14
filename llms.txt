@@ -22,4 +22,4 @@
 
 ## Links
 - Source and README, https://github.com/AnonymousOnyx22/canvas-lms-student-mcp
-- Also available, Brightspace MCP for D2L Brightspace, https://brightspacemcp.com
+- More free student MCP servers, https://brightspacemcp.com/more-mcps/

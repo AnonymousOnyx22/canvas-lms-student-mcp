@@ -1,6 +1,6 @@
 {
   "name": "canvas-lms-student-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read-only Canvas LMS for AI: due dates, grades, missing work, announcements and course content.",
   "type": "module",
   "main": "build/src/index.js",
