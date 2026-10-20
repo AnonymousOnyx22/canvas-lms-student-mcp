@@ -1,8 +1,8 @@
-# Canvas MCP for students
+# Canvas LMS MCP for students
 
 Ask your AI what's actually left to do in Canvas.
 
-This is a free, open source [MCP](https://modelcontextprotocol.io) server. It lets Claude, ChatGPT, Cursor and other AI apps read your Canvas courses, due dates, grades and announcements. It is **read only**. It can never submit, edit or delete anything.
+Canvas LMS MCP is a free, open source [MCP](https://modelcontextprotocol.io) server. It lets Claude, ChatGPT, Cursor and other AI apps read your Canvas courses, due dates, grades and announcements. It is **read only**. It can never submit, edit or delete anything.
 
 Works with any school that uses Canvas. Not affiliated with Instructure.
 

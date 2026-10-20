@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Rewrote the package description and the README opening around the phrase "canvas lms mcp" for npm search, and trimmed the keywords to the same phrase and its parts. No code changed.
+
 ## 0.1.1
 
 - README now lists every free student MCP server from the same author. Nothing else changed.
