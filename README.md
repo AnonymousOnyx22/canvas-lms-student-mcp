@@ -50,7 +50,7 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 
 ## Tools
 
-All tools are read only.
+All tools are read only. Every tool description includes an example prompt your AI can copy.
 
 | Tool | What it does |
 | --- | --- |

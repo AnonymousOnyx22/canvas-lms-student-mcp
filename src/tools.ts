@@ -4,7 +4,9 @@ import { type ToolDef, bullets, fmtDate, stripHtml } from "./core/tools.js";
 
 type Api = HttpClient;
 
-const courseId = z.union([z.string(), z.number()]).describe("Canvas course ID. Use get_my_courses to find it.");
+const courseId = z
+  .union([z.string(), z.number()])
+  .describe("Canvas course ID, the number Canvas shows for the course. Ask get_my_courses for it first.");
 
 interface Course {
   id: number;
@@ -41,7 +43,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_my_courses",
     title: "My courses",
-    description: "List the student's active Canvas courses with their IDs.",
+    description:
+      "List your active Canvas courses with their Canvas course IDs. Example: \"What are my Canvas courses this term?\"",
     inputSchema: {},
     run: async (_args, api) => {
       const courses = await activeCourses(api);
@@ -51,7 +54,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_todo",
     title: "To-do list",
-    description: "Things Canvas says the student still needs to do, such as assignments waiting to be submitted.",
+    description:
+      "Your Canvas to-do list: assignments and discussions Canvas says still need attention, with due dates. Example: \"What does Canvas say I still need to do?\"",
     inputSchema: {},
     run: async (_args, api) => {
       const items = await api.getAll<any>("/api/v1/users/self/todo", { per_page: 50 });
@@ -67,7 +71,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_upcoming_due_dates",
     title: "Upcoming due dates",
-    description: "Upcoming assignments and events across all courses, soonest first.",
+    description:
+      "Upcoming assignments and events across every Canvas course, soonest first. Example: \"What is due in Canvas this week?\"",
     inputSchema: {},
     run: async (_args, api) => {
       const items = await api.getAll<any>("/api/v1/users/self/upcoming_events", { per_page: 50 });
@@ -83,7 +88,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_missing_assignments",
     title: "Missing assignments",
-    description: "Past-due assignments the student has not submitted.",
+    description:
+      "Past-due Canvas assignments you have not submitted, with the course and the day each was due. Example: \"What am I missing in Canvas?\"",
     inputSchema: {},
     run: async (_args, api) => {
       const items = await api.getAll<any>("/api/v1/users/self/missing_submissions", { "include[]": ["course"], per_page: 50 });
@@ -96,7 +102,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_assignments",
     title: "Course assignments",
-    description: "Assignments for one course, with due dates and submission status.",
+    description:
+      "Assignments for one Canvas course. Pass course_id (ask get_my_courses for it) and get due dates, points and submission status: not submitted, submitted, graded, missing or excused. Set bucket to filter, for example overdue. Example: \"Which Canvas assignments in Networking 1 are overdue?\"",
     inputSchema: {
       course_id: courseId,
       bucket: z
@@ -120,7 +127,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_my_grades",
     title: "My grades",
-    description: "Current grade for each active course.",
+    description:
+      "Your current grade in each active Canvas course, straight from the Canvas gradebook. Example: \"What is my grade in each Canvas course?\"",
     inputSchema: {},
     run: async (_args, api) => {
       const courses = await activeCourses(api, { "include[]": ["total_scores"] });
@@ -139,7 +147,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_course_content",
     title: "Course content",
-    description: "Modules and items for a course.",
+    description:
+      "Modules and module items for one Canvas course. Pass course_id (ask get_my_courses for it). Example: \"Show me the Week 3 module in my Canvas Networking course.\"",
     inputSchema: { course_id: courseId },
     run: async ({ course_id }, api) => {
       const modules = await api.getAll<any>(`/api/v1/courses/${course_id}/modules`, { "include[]": ["items"], per_page: 50 });
@@ -155,7 +164,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_syllabus",
     title: "Syllabus",
-    description: "The syllabus text for a course.",
+    description:
+      "The syllabus text for one Canvas course, with HTML removed. Pass course_id (ask get_my_courses for it). Example: \"What does the Canvas syllabus say about grading in Scripting?\"",
     inputSchema: { course_id: courseId },
     run: async ({ course_id }, api) => {
       const c = await api.get<any>(`/api/v1/courses/${course_id}`, { "include[]": ["syllabus_body"] });
@@ -165,7 +175,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_announcements",
     title: "Announcements",
-    description: "Recent announcements. Pass course_ids to limit it, or leave empty for all active courses.",
+    description:
+      "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Example: \"What did my instructors announce in Canvas lately?\"",
     inputSchema: { course_ids: z.array(courseId).optional() },
     run: async ({ course_ids }, api) => {
       const ids: (string | number)[] = course_ids?.length ? course_ids : (await activeCourses(api)).map((c) => c.id);
@@ -184,7 +195,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_discussions",
     title: "Discussions",
-    description: "Discussion topics for a course.",
+    description:
+      "Discussion topics for one Canvas course, with unread counts. Pass course_id (ask get_my_courses for it). Example: \"What discussions are open in my Canvas Networking course?\"",
     inputSchema: { course_id: courseId },
     run: async ({ course_id }, api) => {
       const items = await api.getAll<any>(`/api/v1/courses/${course_id}/discussion_topics`, { per_page: 30 });
@@ -197,7 +209,8 @@ export const tools: ToolDef<Api>[] = [
   {
     name: "get_calendar_events",
     title: "Calendar events",
-    description: "Calendar events and assignment due dates between two dates (YYYY-MM-DD).",
+    description:
+      "Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Example: \"What is on my Canvas calendar between 2026-10-01 and 2026-10-31?\"",
     inputSchema: {
       start_date: z.string().optional().describe("Start date, YYYY-MM-DD"),
       end_date: z.string().optional().describe("End date, YYYY-MM-DD"),

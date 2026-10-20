@@ -91,6 +91,15 @@ describe("canvas-lms-student-mcp", () => {
     for (const t of tools) expect(t.annotations?.readOnlyHint).toBe(true);
   });
 
+  it("describes every tool as Canvas specific and includes an example prompt", async () => {
+    const client = await connect();
+    const { tools } = await client.listTools();
+    for (const t of tools) {
+      expect(t.description, t.name).toContain("Canvas");
+      expect(t.description, t.name).toMatch(/Example: "[^"]+"/);
+    }
+  });
+
   it("lists courses and follows pagination", async () => {
     const { text } = await call(await connect(), "get_my_courses");
     expect(text).toContain("Networking 1");
