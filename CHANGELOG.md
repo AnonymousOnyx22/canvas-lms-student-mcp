@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.2
+
+- Rewrite npm description and keywords around canvas lms mcp
+- Refresh devDependencies and add a CI badge to the README
+- Publish a canvas lms mcp awesome-list and listing pack in promo/
+- Return actionable errors for bad Canvas tokens, 401/403 and rate limits
+- Rename tools to canvashub-style verbs and add example prompts to every description
+- Rework the README first screen: H1, one-line promise, install command, Canvas base URL env var
+- Rewrite package.json description and keywords for "canvas lms mcp"
+- Shorten the server.json description to 100 characters (it is 171)
+- search-rank
+
 ## Unreleased
 
 - Updated the development tools. TypeScript moved from 5.6 to 7, Vitest from 2.1 to 4.1 and the Node type definitions from 22 to 26, so a fresh install no longer pulls old packages. The tsconfig now names the Node types so TypeScript 7 finds them. The README shows a CI badge that points at the workflow that runs the build and the tests, and a new test checks that the badge and the workflow file still match. The package name, the version, the tool names and the runtime dependencies did not change.
