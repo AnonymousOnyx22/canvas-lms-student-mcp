@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Small fixes and clearer docs
+
 ## 0.1.2
 
 - Rewrite npm description and keywords around canvas lms mcp
