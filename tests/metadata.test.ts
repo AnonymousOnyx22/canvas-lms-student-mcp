@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -45,5 +45,15 @@ describe("search metadata", () => {
     expect(pkg.bin["canvas-lms-student-mcp"]).toBe("build/src/index.js");
     expect(pkg.version).toBe(server.version);
     expect(server.packages[0].version).toBe(pkg.version);
+  });
+});
+
+describe("readme", () => {
+  it("shows a CI badge that points at the workflow that runs the tests", () => {
+    const repoUrl = pkg.repository.url.replace(/^git\+/, "").replace(/\.git$/, "");
+    const readme = readFileSync(join(root, "README.md"), "utf8");
+    expect(existsSync(join(root, ".github", "workflows", "ci.yml"))).toBe(true);
+    expect(readme).toContain(`${repoUrl}/actions/workflows/ci.yml/badge.svg`);
+    expect(readme).toContain(`(${repoUrl}/actions/workflows/ci.yml)`);
   });
 });

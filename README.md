@@ -1,5 +1,7 @@
 # Canvas LMS MCP for students
 
+[![tests](https://github.com/AnonymousOnyx22/canvas-lms-student-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/AnonymousOnyx22/canvas-lms-student-mcp/actions/workflows/ci.yml)
+
 Ask your AI what's actually left to do in Canvas.
 
 Canvas LMS MCP is a free, open source [MCP](https://modelcontextprotocol.io) server for Claude, ChatGPT, Cursor and other AI apps. It reads your Canvas courses, due dates, grades and announcements. It is **read only**. It can never submit, edit or delete anything.
@@ -93,7 +95,7 @@ npm run build
 npm test
 ```
 
-Tests run against a fake Canvas server, so they need no account or network.
+Tests run against a fake Canvas server, so they need no account or network. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
 
 ## More free student MCP servers
 
