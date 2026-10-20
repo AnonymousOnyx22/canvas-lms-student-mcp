@@ -8,7 +8,7 @@ import { createServer, VERSION } from "./server.js";
 function usage(): void {
   console.log(`canvas-lms-student-mcp ${VERSION}
 
-Read-only Canvas LMS server for AI apps (MCP).
+Canvas LMS MCP server for students. Read only access to Canvas courses, grades, due dates and announcements.
 
 Environment
   CANVAS_BASE_URL    Your school's Canvas address, for example https://myschool.instructure.com

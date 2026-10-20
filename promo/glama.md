@@ -21,7 +21,7 @@ io.github.AnonymousOnyx22/canvas-lms-student-mcp
 For the search card, about 100 characters.
 
 ```text
-Read-only Canvas LMS MCP for students. Courses, grades, due dates, missing work and announcements.
+Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates and announcements.
 ```
 
 ## About

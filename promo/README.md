@@ -41,7 +41,7 @@ Ask your AI what's actually left to do in Canvas.
 About 100 characters:
 
 ```text
-Read-only Canvas LMS MCP for students. Courses, grades, due dates, missing work and announcements.
+Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates and announcements.
 ```
 
 Social length, about 280 characters:

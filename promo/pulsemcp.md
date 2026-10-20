@@ -15,7 +15,7 @@ Canvas LMS MCP
 For the search card. Keep it under the form's limit.
 
 ```text
-Read-only Canvas LMS MCP for students. Courses, grades, due dates, missing work and announcements for Claude, ChatGPT and Cursor.
+Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates and announcements for Claude, ChatGPT and Cursor.
 ```
 
 ## Description
