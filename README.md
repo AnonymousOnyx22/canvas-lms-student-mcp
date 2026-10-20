@@ -74,12 +74,16 @@ All tools are read only. Every tool description includes an example prompt your 
 
 ## Troubleshooting
 
+Errors from Canvas and from the connection say what went wrong and what to fix. The most common ones:
+
 | Message | Fix |
 | --- | --- |
-| Not signed in | Your token expired or was revoked. Make a new one. |
-| Access denied | Your school turned that feature off for students. |
-| Not found | Check the course ID with `get_my_courses`. |
-| Rate limited | Wait a minute and try again. |
+| Not signed in | Your token is missing, expired or was revoked. Make a new one in Canvas (Account > Settings > New Access Token), then run `npx canvas-lms-student-mcp doctor`. |
+| Access denied | Your school turned that feature off for students, or the token belongs to a different Canvas account. |
+| Not found | Check the course ID with `get_my_courses`. If every request says not found, `CANVAS_BASE_URL` is wrong. |
+| Rate limited | Wait the number of seconds the message says, then try again. |
+| Could not reach | The host in `CANVAS_BASE_URL` does not exist. Check the spelling, for example `https://myschool.instructure.com`. |
+| did not return Canvas API JSON | The address in `CANVAS_BASE_URL` is not a Canvas site. Use your school's Canvas address with no extra path. |
 
 ## Development
 

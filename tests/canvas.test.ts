@@ -3,7 +3,7 @@ import http from "node:http";
 import type { AddressInfo } from "node:net";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { createClient } from "../src/core/http.js";
+import { ApiError, createClient, describeStatus } from "../src/core/http.js";
 import { createServer } from "../src/server.js";
 import { normalizeBaseUrl } from "../src/config.js";
 
@@ -60,6 +60,22 @@ beforeAll(async () => {
     }
     if (p === "/api/v1/courses/1/discussion_topics") return json([{ title: "Week 1 intro", posted_at: past, unread_count: 2 }]);
     if (p === "/api/v1/calendar_events") return json([{ title: "Exam", start_at: future, context_name: "Scripting" }]);
+    if (p === "/api/v1/courses/403") {
+      res.writeHead(403, { "content-type": "application/json" });
+      return res.end(JSON.stringify({ errors: [{ message: "user not authorized" }] }));
+    }
+    if (p === "/api/v1/courses/429/assignments") {
+      res.writeHead(429, { "content-type": "application/json", "retry-after": "30" });
+      return res.end(JSON.stringify({ errors: [{ message: "Rate limit exceeded, too many requests" }] }));
+    }
+    if (p === "/api/v1/courses/7") {
+      res.writeHead(200, { "content-type": "text/html" });
+      return res.end("<html><body>This is not Canvas.</body></html>");
+    }
+    if (p === "/api/v1/courses/8") {
+      res.writeHead(200, { "content-type": "application/json" });
+      return res.end("");
+    }
     res.writeHead(404);
     res.end("{}");
   });
@@ -142,10 +158,37 @@ describe("canvas-lms-student-mcp", () => {
     expect((await call(c, "get_calendar_events", { start_date: "2026-10-01" })).text).toContain("Exam");
   });
 
-  it("returns a friendly error when the token is bad", async () => {
+  it("returns a friendly, actionable error when the token is bad", async () => {
     const { text, isError } = await call(await connect("nope"), "get_my_courses");
     expect(isError).toBe(true);
     expect(text).toContain("Not signed in");
+    expect(text).toContain("New Access Token");
+    expect(text).toContain("doctor");
+  });
+
+  it("returns an actionable error for a forbidden course", async () => {
+    const { text, isError } = await call(await connect(), "get_syllabus", { course_id: 403 });
+    expect(isError).toBe(true);
+    expect(text).toContain("Access denied");
+    expect(text).toContain("user not authorized");
+  });
+
+  it("returns an actionable error when rate limited, including how long to wait", async () => {
+    const { text, isError } = await call(await connect(), "get_assignments", { course_id: 429 });
+    expect(isError).toBe(true);
+    expect(text).toContain("Rate limited");
+    expect(text).toContain("30 seconds");
+  });
+
+  it("blames CANVAS_BASE_URL when the server is not Canvas", async () => {
+    const html = await call(await connect(), "get_syllabus", { course_id: 7 });
+    expect(html.isError).toBe(true);
+    expect(html.text).toContain("did not return Canvas API JSON");
+    expect(html.text).toContain("CANVAS_BASE_URL");
+    const empty = await call(await connect(), "get_syllabus", { course_id: 8 });
+    expect(empty.isError).toBe(true);
+    expect(empty.text).toContain("empty response");
+    expect(empty.text).toContain("CANVAS_BASE_URL");
   });
 
   it("returns a friendly error for an unknown course", async () => {
@@ -157,5 +200,35 @@ describe("canvas-lms-student-mcp", () => {
   it("normalizes school URLs", () => {
     expect(normalizeBaseUrl("myschool.instructure.com")).toBe("https://myschool.instructure.com");
     expect(normalizeBaseUrl("https://myschool.instructure.com/api/v1/")).toBe("https://myschool.instructure.com");
+  });
+});
+
+describe("status messages", () => {
+  it("adds the Canvas message and a token fix to 401", () => {
+    const body = JSON.stringify({ errors: [{ message: "Invalid access token." }] });
+    const msg = describeStatus(401, { body, host: "myschool.instructure.com" });
+    expect(msg).toContain("Not signed in");
+    expect(msg).toContain("myschool.instructure.com");
+    expect(msg).toContain("Invalid access token.");
+    expect(msg).toContain("New Access Token");
+  });
+
+  it("says how long to wait after a 429", () => {
+    expect(describeStatus(429, { retryAfter: "45" })).toContain("45 seconds");
+    expect(describeStatus(429, { retryAfter: null })).toContain("a minute");
+  });
+
+  it("explains unreachable hosts", async () => {
+    const failure = Object.assign(new Error("getaddrinfo ENOTFOUND canvas.example.edu"), { code: "ENOTFOUND" });
+    const api = createClient({
+      baseUrl: "https://canvas.example.edu",
+      fetchImpl: (async () => {
+        throw failure;
+      }) as unknown as typeof fetch,
+    });
+    const err = (await api.get("/api/v1/courses").catch((e: unknown) => e)) as ApiError;
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.message).toContain("Could not reach canvas.example.edu");
+    expect(err.message).toContain("CANVAS_BASE_URL");
   });
 });
