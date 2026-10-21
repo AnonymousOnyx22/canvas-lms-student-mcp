@@ -52,6 +52,8 @@ beforeAll(async () => {
         { name: "Lab 5", due_at: future, points_possible: 10, submission: { workflow_state: "submitted" } },
         { name: "Lab 2", due_at: past, points_possible: 10, submission: { workflow_state: "unsubmitted", missing: true } },
       ]);
+    if (p === "/api/v1/courses/2/assignments")
+      return json([{ name: "Essay 1", due_at: past, points_possible: 100, submission: { workflow_state: "graded", score: 88 } }]);
     if (p === "/api/v1/courses/1/modules") return json([{ name: "Week 1", items: [{ title: "Intro video", type: "ExternalUrl" }] }]);
     if (p === "/api/v1/courses/1") return json({ syllabus_body: "<p>Welcome &amp; hello</p><script>x()</script><p>Grading</p>" });
     if (p === "/api/v1/announcements") {
@@ -127,6 +129,28 @@ describe("canvas-lms-student-mcp", () => {
     const { text } = await call(await connect(), "get_my_grades");
     expect(text).toContain("Networking 1 91.5% (A)");
     expect(text).toContain("Scripting no grade posted yet");
+  });
+
+  it("breaks each course grade down into assignment scores and submission status", async () => {
+    const { text } = await call(await connect(), "get_my_grades");
+    expect(text).toMatch(/Lab 3: graded 9\/10/);
+    expect(text).toMatch(/Lab 5: submitted \(10 pts\)/);
+    expect(text).toMatch(/Lab 2: missing \(10 pts\)/);
+    expect(text).not.toContain("Lab 4");
+    expect(text).toMatch(/Essay 1: graded 88\/100/);
+  });
+
+  it("limits the grade breakdown to one course when course_id is passed", async () => {
+    const { text } = await call(await connect(), "get_my_grades", { course_id: 2 });
+    expect(text).toContain("Scripting");
+    expect(text).not.toContain("Networking 1");
+    expect(text).toMatch(/Essay 1: graded 88\/100/);
+  });
+
+  it("explains an unknown course id in get_my_grades", async () => {
+    const { text } = await call(await connect(), "get_my_grades", { course_id: 55 });
+    expect(text).toContain("No active Canvas course with id 55");
+    expect(text).toContain("get_my_courses");
   });
 
   it("shows todo, upcoming sorted by date, and missing work", async () => {

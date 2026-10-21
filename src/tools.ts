@@ -128,20 +128,51 @@ export const tools: ToolDef<Api>[] = [
     name: "get_my_grades",
     title: "My grades",
     description:
-      "Your current grade in each active Canvas course, straight from the Canvas gradebook. Example: \"What is my grade in each Canvas course?\"",
-    inputSchema: {},
-    run: async (_args, api) => {
+      "Your current grade in each active Canvas course from the Canvas gradebook, with the assignments behind each grade: your score, the points possible and the submission status. Pass course_id (ask get_my_courses for it) for one course only. Example: \"What is my grade in each Canvas course and which assignments make it up?\"",
+    inputSchema: {
+      course_id: courseId.optional().describe("Optional, limit the grades and the breakdown to one course."),
+    },
+    run: async ({ course_id }, api) => {
       const courses = await activeCourses(api, { "include[]": ["total_scores"] });
-      return bullets(
-        courses.map((c) => {
-          const e = c.enrollments?.find((x) => x.type === "student") ?? c.enrollments?.[0];
-          const score = e?.computed_current_score;
-          const grade = e?.computed_current_grade;
-          if (score == null && !grade) return `${c.name} no grade posted yet`;
-          return `${c.name} ${score != null ? `${score}%` : ""}${grade ? ` (${grade})` : ""}`.trim();
-        }),
-        "No grades found.",
-      );
+      const shown = course_id == null ? courses : courses.filter((c) => String(c.id) === String(course_id));
+      if (!shown.length) {
+        return course_id != null
+          ? `No active Canvas course with id ${course_id}. Ask get_my_courses for the right id.`
+          : "No grades found.";
+      }
+      const sections: string[] = [];
+      for (const c of shown) {
+        const e = c.enrollments?.find((x) => x.type === "student") ?? c.enrollments?.[0];
+        const score = e?.computed_current_score;
+        const grade = e?.computed_current_grade;
+        const head =
+          score == null && !grade
+            ? `${c.name} no grade posted yet`
+            : `${c.name} ${score != null ? `${score}%` : ""}${grade ? ` (${grade})` : ""}`.trim();
+        let rows: string[];
+        try {
+          const items = await api.getAll<any>(`/api/v1/courses/${c.id}/assignments`, {
+            "include[]": ["submission"],
+            order_by: "due_at",
+            per_page: 100,
+          });
+          rows = items
+            .filter((a) => submissionLine(a) !== "not submitted")
+            .map((a) => {
+              const status = submissionLine(a);
+              const pts = a.points_possible != null && !status.includes("/") ? ` (${a.points_possible} pts)` : "";
+              return `  - ${a.name}: ${status}${pts}`;
+            });
+        } catch {
+          rows = ["  - Canvas would not list the assignments for this course."];
+        }
+        if (rows.length > 25) {
+          const rest = rows.length - 25;
+          rows = [...rows.slice(0, 25), `  - and ${rest} more. Ask get_assignments for the full list.`];
+        }
+        sections.push(rows.length ? `- ${head}\n${rows.join("\n")}` : `- ${head}`);
+      }
+      return sections.join("\n");
     },
   },
   {

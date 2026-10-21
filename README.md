@@ -46,7 +46,7 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 
 - "What's due this week?"
 - "Do I have anything missing or overdue?"
-- "What's my grade in each class?"
+- "What's my grade in each class, and which assignments make it up?"
 - "What did my instructors announce lately?"
 - "Show me what's in the Week 3 module for Networking."
 
@@ -61,7 +61,7 @@ All 11 tools are read only and only read from Canvas LMS. Every tool description
 | `get_upcoming_due_dates` | Upcoming assignments and events, soonest first | "What is due in Canvas this week?" |
 | `get_missing_assignments` | Past due work you haven't submitted | "What am I missing in Canvas?" |
 | `get_assignments` | Assignments for a course with due dates and submission status | "Which Canvas assignments in Networking 1 are overdue?" |
-| `get_my_grades` | Current grade for each course | "What is my grade in each Canvas course?" |
+| `get_my_grades` | Current grade for each course, plus the assignment scores and submission status behind it | "What is my grade in each Canvas course and which assignments make it up?" |
 | `get_course_content` | Modules and items for a course | "Show me the Week 3 module in my Canvas Networking course." |
 | `get_syllabus` | A course's syllabus text | "What does the Canvas syllabus say about grading in Scripting?" |
 | `get_announcements` | Recent announcements | "What did my instructors announce in Canvas lately?" |
