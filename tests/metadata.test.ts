@@ -27,6 +27,30 @@ const glama = JSON.parse(readFileSync(join(root, "glama.json"), "utf8"));
 const PHRASE = "canvas lms mcp";
 const REPO_URL = "https://github.com/AnonymousOnyx22/canvas-lms-student-mcp";
 
+const NUMBER_WORDS = [
+  "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+  "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen",
+];
+const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+
+/** Spell a small number out, the way the docs count tools. */
+function numberWords(count: number): string {
+  if (count < 20) return NUMBER_WORDS[count];
+  if (count < 100) {
+    const tens = TENS[Math.floor(count / 10)];
+    const ones = count % 10;
+    return ones ? `${tens} ${NUMBER_WORDS[ones]}` : tens;
+  }
+  return String(count);
+}
+
+/** The sentence the README uses to say how many tools are read only. */
+function readOnlySentence(count: number): string {
+  const words = numberWords(count);
+  const start = words[0].toUpperCase() + words.slice(1);
+  return count === 1 ? "One tool is marked read only" : `${start} tools are marked read only`;
+}
+
 describe("search metadata", () => {
   it("leads with the phrase people search for on npm", () => {
     expect(pkg.description.toLowerCase().startsWith(PHRASE)).toBe(true);
@@ -154,30 +178,49 @@ describe("published files", () => {
 describe("one version everywhere", () => {
   it("keeps the npm page, the registry entry and llms.txt on the same version and tool list", () => {
     const llms = readFileSync(join(root, "llms.txt"), "utf8");
-    const readme = readFileSync(join(root, "README.md"), "utf8");
 
-    expect(pkg.version).toBe("0.1.4");
-    expect(server.version).toBe("0.1.4");
-    expect(server.packages[0].version).toBe("0.1.4");
-    expect(glama.version).toBe("0.1.4");
-    expect(VERSION).toBe("0.1.4");
+    // package.json holds the version. Every other file has to follow it, so a
+    // release only changes one place.
+    const version = pkg.version;
+    expect(version, "package.json has no version").toMatch(/^\d+\.\d+\.\d+$/);
+    expect(server.version).toBe(version);
+    expect(server.packages[0].version).toBe(version);
+    expect(glama.version).toBe(version);
+    expect(VERSION).toBe(version);
 
     const llmsVersion = llms.match(/^Version:\s*(\S+)\s*$/m);
     expect(llmsVersion, "llms.txt has no Version line").not.toBeNull();
-    expect(llmsVersion?.[1]).toBe("0.1.4");
+    expect(llmsVersion?.[1]).toBe(version);
 
     const names = tools.map((t) => t.name).sort();
     const llmsNames = [...llms.matchAll(/^- ((?:get|export)_[a-z_]+):/gm)].map((m) => m[1]).sort();
     expect(llmsNames).toEqual(names);
     expect(glama.tools.map((t: { name: string }) => t.name).sort()).toEqual(names);
+  });
+});
+
+describe("one tool count everywhere", () => {
+  it("counts the read only tools in the code and keeps the docs on the same number", () => {
+    const llms = readFileSync(join(root, "llms.txt"), "utf8");
+    const readme = readFileSync(join(root, "README.md"), "utf8");
 
     const readOnly = tools.filter((t) => t.annotations?.readOnlyHint !== false);
-    expect(readOnly.length).toBe(12);
-    expect(tools.filter((t) => t.annotations?.readOnlyHint === false).map((t) => t.name)).toEqual([
-      "export_due_dates_calendar",
-    ]);
-    expect(llms).toContain("twelve read only");
-    expect(readme).toContain("Twelve tools are marked read only");
+    const writers = tools.filter((t) => t.annotations?.readOnlyHint === false);
+
+    // The calendar export is the one tool that writes a file. Every other
+    // tool only reads from Canvas.
+    expect(writers.map((t) => t.name)).toEqual(["export_due_dates_calendar"]);
+
+    const readOnlyWords = numberWords(readOnly.length);
+    expect(llms, `llms.txt should say "${readOnlyWords} read only"`).toContain(`${readOnlyWords} read only`);
+
+    const writerWords = numberWords(writers.length);
+    const writerPhrase =
+      writers.length === 1 ? `${writerWords} writes a calendar file` : `${writerWords} write calendar files`;
+    expect(llms, `llms.txt should say "${writerPhrase}"`).toContain(writerPhrase);
+
+    const sentence = readOnlySentence(readOnly.length);
+    expect(readme, `README should say "${sentence}"`).toContain(sentence);
   });
 });
 
