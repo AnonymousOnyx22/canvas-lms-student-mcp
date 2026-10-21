@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Add Ask like example prompts to README Tools table
+- Deepen get_my_grades with per course assignment breakdown
+
 ## 0.1.3
 
 - Small fixes and clearer docs
