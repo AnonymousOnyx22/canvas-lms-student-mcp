@@ -16,8 +16,8 @@ Every claim in these files comes from the code and the README. If you change any
 
 - npm package `canvas-lms-student-mcp`, run with `npx -y canvas-lms-student-mcp`. No install step.
 - Needs two environment variables: `CANVAS_BASE_URL` and `CANVAS_API_TOKEN`. `npx canvas-lms-student-mcp doctor` checks both.
-- 12 tools, all read only: `get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_whats_new`, `get_discussions`, `get_calendar_events`.
-- Cannot submit, edit or delete anything. There is no write tool in the server.
+- 13 tools: `get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_whats_new`, `get_discussions`, `get_calendar_events`, `export_due_dates_calendar`.
+- Cannot submit, edit or delete anything in Canvas. Twelve tools are read only. The 13th, `export_due_dates_calendar`, writes one .ics calendar file on your own computer.
 - Works with any school that runs Canvas LMS by Instructure. Not affiliated with Instructure.
 - MIT license. Needs Node 20 or newer.
 - Tests run against a fake Canvas server, so they need no account and no network.
@@ -41,11 +41,11 @@ Ask your AI what's actually left to do in Canvas.
 About 100 characters:
 
 ```text
-Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates and announcements.
+Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates, plus .ics export.
 ```
 
 Social length, about 280 characters:
 
 ```text
-Free open source MCP server for Canvas LMS students. Your AI app can list courses, due dates, missing work, grades, announcements, syllabus, modules, discussions and calendar events. Read only, it can never submit or edit anything. npx -y canvas-lms-student-mcp
+Free open source MCP server for Canvas LMS students. Your AI app can list courses, due dates, missing work, grades, announcements, syllabus, modules, discussions and calendar events, and export your due dates as an .ics file for Google Calendar. It never submits or edits anything in Canvas. npx -y canvas-lms-student-mcp
 ```

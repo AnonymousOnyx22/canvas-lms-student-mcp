@@ -20,7 +20,7 @@ export interface CliOptions {
 function usage(): string {
   return `canvas-lms-student-mcp ${VERSION}
 
-Canvas LMS MCP server for students. Read only access to Canvas courses, grades, due dates and announcements.
+Canvas LMS MCP server for students. Read only access to Canvas courses, grades, due dates and announcements, plus an .ics calendar export.
 
 Environment
   CANVAS_BASE_URL    Your school's Canvas address, for example https://myschool.instructure.com

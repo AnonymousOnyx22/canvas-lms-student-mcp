@@ -21,6 +21,8 @@ export interface ClientOptions {
 export type Query = Record<string, string | number | boolean | undefined | Array<string | number>>;
 
 export interface HttpClient {
+  /** The address of the Canvas site, so a tool can build a link back to Canvas. */
+  readonly baseUrl: string;
   get<T = unknown>(path: string, query?: Query): Promise<T>;
   /** Follows RFC 5988 `Link: rel="next"` pagination and concatenates array pages. */
   getAll<T = unknown>(path: string, query?: Query, maxPages?: number): Promise<T[]>;
@@ -165,6 +167,7 @@ export function createClient(opts: ClientOptions): HttpClient {
   }
 
   return {
+    baseUrl: opts.baseUrl.replace(/\/+$/, ""),
     async get<T>(path: string, query?: Query): Promise<T> {
       const url = toUrl(path, query);
       const res = await request(url);

@@ -1,13 +1,13 @@
 # canvas-lms-student-mcp
 
-> Canvas LMS MCP is a free, open source, read only MCP server that lets AI apps (Claude, ChatGPT, Cursor, Copilot and others) read a student's Canvas LMS by Instructure courses, due dates, grades and announcements. It cannot submit, edit or delete anything.
+> Canvas LMS MCP is a free, open source, read only MCP server that lets AI apps (Claude, ChatGPT, Cursor, Copilot and others) read a student's Canvas LMS by Instructure courses, due dates, grades and announcements. It cannot submit, edit or delete anything. It can save your due dates as an .ics calendar file on your own computer.
 
 ## Setup
 - Needs CANVAS_BASE_URL and CANVAS_API_TOKEN.
 - Create a token in Canvas under Account, Settings, New Access Token.
 - Run with npx -y canvas-lms-student-mcp. Run `npx canvas-lms-student-mcp doctor` to check the setup.
 
-## Tools (all read only)
+## Tools (twelve read only, one writes a calendar file)
 - get_my_courses: List your active Canvas courses with their Canvas course IDs. Example: "What are my Canvas courses this term?"
 - get_todo: Your Canvas to-do list: assignments and discussions Canvas says still need attention, with due dates. Example: "What does Canvas say I still need to do?"
 - get_upcoming_due_dates: Upcoming assignments and events across every Canvas course, soonest first. Example: "What is due in Canvas this week?"
@@ -20,8 +20,9 @@
 - get_whats_new: One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id (ask get_my_courses for it) to check one course. Example: "What's new in Canvas since last week?"
 - get_discussions: Discussion topics for one Canvas course, with unread counts. Pass course_id (ask get_my_courses for it). Example: "What discussions are open in my Canvas Networking course?"
 - get_calendar_events: Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Example: "What is on my Canvas calendar between 2026-10-01 and 2026-10-31?"
+- export_due_dates_calendar: Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id (ask get_my_courses for it) for one course. Example: "Put my Canvas due dates in Google Calendar."
 
-get_assignments takes an optional bucket filter, for example overdue. get_announcements takes optional course_ids. get_whats_new takes an optional since_days. get_calendar_events takes optional start_date and end_date as YYYY-MM-DD.
+get_assignments takes an optional bucket filter, for example overdue. get_announcements takes optional course_ids. get_whats_new takes an optional since_days. get_calendar_events takes optional start_date and end_date as YYYY-MM-DD. export_due_dates_calendar takes optional days_ahead, course_id, include_submitted, path and filename.
 
 ## Links
 - Source and README, https://github.com/AnonymousOnyx22/canvas-lms-student-mcp

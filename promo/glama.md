@@ -21,7 +21,7 @@ io.github.AnonymousOnyx22/canvas-lms-student-mcp
 For the search card, about 100 characters.
 
 ```text
-Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates and announcements.
+Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates, plus .ics export.
 ```
 
 ## About
@@ -45,8 +45,9 @@ Ask things like "what's due this week", "what am I missing or overdue", "what's 
 - New announcements, newly graded work and unread discussion replies in one call
 - Discussion topics with unread counts
 - Calendar events between two dates
+- An .ics calendar file with your due dates, ready to import into Google Calendar or Apple Calendar
 
-All 12 tools are read only. The server has no tool that submits, edits or deletes anything, so it can never turn in work or change a grade.
+Twelve of the 13 tools are read only. The 13th writes the .ics file you ask for on your own computer. No tool submits, edits or deletes anything in Canvas, so it can never turn in work or change a grade.
 
 ## Setup
 
@@ -81,7 +82,7 @@ Education, Learning, Productivity
 ## Tags
 
 ```text
-canvas, canvas lms, instructure, lms, education, students, grades, due dates, assignments, read only
+canvas, canvas lms, instructure, lms, education, students, grades, due dates, assignments, read only, icalendar, calendar export
 ```
 
 ## Install command

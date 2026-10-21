@@ -51,6 +51,10 @@
     {
       "name": "get_calendar_events",
       "description": "Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Example: \"What is on my Canvas calendar between 2026-10-01 and 2026-10-31?\""
+    },
+    {
+      "name": "export_due_dates_calendar",
+      "description": "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id (ask get_my_courses for it) for one course. Example: \"Put my Canvas due dates in Google Calendar.\""
     }
   ]
 }

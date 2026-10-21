@@ -4,7 +4,7 @@
 
 Ask your AI what's actually left to do in Canvas.
 
-Canvas LMS MCP is a free, open source [MCP](https://modelcontextprotocol.io) server for Claude, ChatGPT, Cursor and other AI apps. It reads your Canvas courses, due dates, grades and announcements. It is **read only**. It can never submit, edit or delete anything.
+Canvas LMS MCP is a free, open source [MCP](https://modelcontextprotocol.io) server for Claude, ChatGPT, Cursor and other AI apps. It reads your Canvas courses, due dates, grades and announcements, and it is **read only** in Canvas: it never submits, edits or deletes anything there. The one thing it writes is an .ics calendar file on your own computer, and only when you ask it to.
 
 Install and run it with npx, no install step needed:
 
@@ -50,10 +50,11 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 - "What did my instructors announce lately?"
 - "What's new in Canvas since last week?"
 - "Show me what's in the Week 3 module for Networking."
+- "Put my Canvas due dates in Google Calendar."
 
 ## Tools
 
-All 12 tools are read only and only read from Canvas LMS. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here.
+All 13 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
 
 | Tool | What it does | Ask like |
 | --- | --- | --- |
@@ -69,12 +70,20 @@ All 12 tools are read only and only read from Canvas LMS. Every tool description
 | `get_whats_new` | One catch up: recent announcements, newly graded work and unread discussion replies | "What's new in Canvas since last week?" |
 | `get_discussions` | Discussion topics for a course | "What discussions are open in my Canvas Networking course?" |
 | `get_calendar_events` | Calendar events between two dates | "What is on my Canvas calendar between 2026-10-01 and 2026-10-31?" |
+| `export_due_dates_calendar` | An .ics file with your due dates, ready to import into Google Calendar or Apple Calendar | "Put my Canvas due dates in Google Calendar." |
+
+## Calendar export
+
+`export_due_dates_calendar` turns your Canvas due dates and your Canvas calendar events into an iCalendar file. Name a folder and the file is saved there, for example "Save my Canvas due dates to my Documents folder as an .ics file". Open the file or import it in Google Calendar, Apple Calendar or Outlook.
+
+The file holds the next 30 days and only the work you still owe. Use `days_ahead` for a longer window, `course_id` for one course, and `include_submitted` to add the work you already handed in. Each event carries the course name, the points, the submission status, a link back to Canvas and a reminder the day before. Leave the folder out and the calendar text comes back instead, so you can save it under any name you like.
 
 ## Privacy and security
 
 - Your token stays on your computer. It is only sent to your own school's Canvas address.
 - Nothing is sent to any other server by this project.
-- Every tool is marked read only. Revoke the token any time in Canvas settings.
+- Twelve tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
+- Revoke the token any time in Canvas settings.
 
 ## Troubleshooting
 
@@ -97,7 +106,7 @@ npm run build
 npm test
 ```
 
-Tests run against a fake Canvas server, so they need no account or network. The doctor command and the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas are part of that suite. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
+Tests run against a fake Canvas server, so they need no account or network. The doctor command, the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas, and the .ics calendar export are part of that suite. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
 
 ## Why Canvas MCP
 
@@ -107,7 +116,7 @@ If your school runs Canvas, use this server. If it runs Brightspace, use brights
 | --- | --- | --- |
 | LMS | Canvas (Instructure) | Brightspace (D2L) |
 | Free | Yes | Yes |
-| Read only | Yes | Yes |
+| Changes nothing in the LMS | Yes | Yes |
 | npx one liner | Yes | Yes |
 
 Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.

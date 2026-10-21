@@ -15,7 +15,7 @@ Canvas LMS MCP
 For the search card. Keep it under the form's limit.
 
 ```text
-Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates and announcements for Claude, ChatGPT and Cursor.
+Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates, plus .ics export for Claude, ChatGPT and Cursor.
 ```
 
 ## Description
@@ -37,8 +37,9 @@ Canvas LMS MCP is a free, open source, read-only MCP server for students who use
 - Summarize what is new in one call: recent announcements, newly graded work and unread discussion replies
 - Read discussion topics with unread counts
 - Read calendar events between two dates
+- Save your due dates as an .ics calendar file you can import into Google Calendar or Apple Calendar
 
-All 12 tools are read only. The server has no tool that submits, edits or deletes anything, so it can never turn in work or change a grade.
+Twelve of the 13 tools are read only. The 13th writes the .ics file you ask for on your own computer. No tool submits, edits or deletes anything in Canvas, so it can never turn in work or change a grade.
 
 ## Setup
 
@@ -73,7 +74,7 @@ Education, Learning, Productivity
 ## Tags
 
 ```text
-canvas, canvas lms, instructure, lms, education, students, grades, due dates, assignments, read only
+canvas, canvas lms, instructure, lms, education, students, grades, due dates, assignments, read only, icalendar, calendar export
 ```
 
 ## License
@@ -98,4 +99,4 @@ https://brightspacemcp.com
 
 ## Follow up
 
-After the listing is live, open it once and check that the tools list shows all 12 tools and that the install command survived the paste. Fix the listing in place if a field got truncated.
+After the listing is live, open it once and check that the tools list shows all 13 tools and that the install command survived the paste. Fix the listing in place if a field got truncated.

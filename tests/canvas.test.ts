@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
-import { readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { AddressInfo } from "node:net";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -10,8 +12,14 @@ import { tools } from "../src/tools.js";
 import { normalizeBaseUrl } from "../src/config.js";
 
 const future = new Date(Date.now() + 2 * 86400000).toISOString();
+const futureEnd = new Date(Date.now() + 2 * 86400000 + 3600000).toISOString();
 const past = new Date(Date.now() - 2 * 86400000).toISOString();
 const longAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+
+/** Undo the line folding of an .ics file so a test can look for a whole value. */
+function unfold(ics: string): string {
+  return ics.replace(/\r\n /g, "");
+}
 
 let srv: http.Server;
 let base = "";
@@ -50,15 +58,51 @@ beforeAll(async () => {
     if (p === "/api/v1/users/self/missing_submissions") return json([{ name: "Reflection", course_id: 1, due_at: past, course: { name: "Networking 1" } }]);
     if (p === "/api/v1/courses/1/assignments")
       return json([
-        { name: "Lab 3", due_at: past, points_possible: 10, submission: { workflow_state: "graded", score: 9, graded_at: past } },
-        { name: "Lab 4", due_at: future, points_possible: 10, submission: { workflow_state: "unsubmitted" } },
-        { name: "Lab 5", due_at: future, points_possible: 10, submission: { workflow_state: "submitted" } },
-        { name: "Lab 2", due_at: past, points_possible: 10, submission: { workflow_state: "unsubmitted", missing: true } },
+        {
+          id: 11,
+          name: "Lab 3",
+          due_at: past,
+          points_possible: 10,
+          html_url: "https://school.instructure.com/courses/1/assignments/11",
+          submission: { workflow_state: "graded", score: 9, graded_at: past },
+        },
+        {
+          id: 12,
+          name: "Lab 4",
+          due_at: future,
+          points_possible: 10,
+          html_url: "https://school.instructure.com/courses/1/assignments/12",
+          submission: { workflow_state: "unsubmitted" },
+        },
+        {
+          id: 13,
+          name: "Lab 5",
+          due_at: future,
+          points_possible: 10,
+          html_url: "https://school.instructure.com/courses/1/assignments/13",
+          submission: { workflow_state: "submitted" },
+        },
+        {
+          id: 14,
+          name: "Lab 2",
+          due_at: past,
+          points_possible: 10,
+          html_url: "https://school.instructure.com/courses/1/assignments/14",
+          submission: { workflow_state: "unsubmitted", missing: true },
+        },
+        {
+          id: 15,
+          name: "Lab 6",
+          due_at: future,
+          points_possible: 10,
+          html_url: "https://school.instructure.com/courses/1/assignments/15",
+          submission: { workflow_state: "unsubmitted", excused: true },
+        },
       ]);
     if (p === "/api/v1/courses/2/assignments")
       return json([
-        { name: "Quiz 0", due_at: longAgo, points_possible: 10, submission: { workflow_state: "graded", score: 10, graded_at: longAgo } },
-        { name: "Essay 1", due_at: past, points_possible: 100, submission: { workflow_state: "graded", score: 88, graded_at: past } },
+        { id: 21, name: "Quiz 0", due_at: longAgo, points_possible: 10, submission: { workflow_state: "graded", score: 10, graded_at: longAgo } },
+        { id: 22, name: "Essay 1", due_at: past, points_possible: 100, submission: { workflow_state: "graded", score: 88, graded_at: past } },
       ]);
     if (p === "/api/v1/courses/3/assignments") return json([]);
     if (p === "/api/v1/courses/1/modules") return json([{ name: "Week 1", items: [{ title: "Intro video", type: "ExternalUrl" }] }]);
@@ -70,7 +114,26 @@ beforeAll(async () => {
     if (p === "/api/v1/courses/1/discussion_topics") return json([{ title: "Week 1 intro", posted_at: past, unread_count: 2 }]);
     if (p === "/api/v1/courses/2/discussion_topics") return json([{ title: "Essay feedback", posted_at: past, unread_count: 1 }]);
     if (p === "/api/v1/courses/3/discussion_topics") return json([]);
-    if (p === "/api/v1/calendar_events") return json([{ title: "Exam", start_at: future, context_name: "Scripting" }]);
+    if (p === "/api/v1/calendar_events")
+      return json([
+        {
+          id: 31,
+          title: "Exam",
+          start_at: future,
+          end_at: futureEnd,
+          context_id: 2,
+          context_name: "Scripting",
+          html_url: "https://school.instructure.com/courses/2/calendar_events/31",
+        },
+        {
+          id: 32,
+          title: "Lab 4 due date",
+          start_at: future,
+          context_id: 1,
+          context_name: "Networking 1",
+          assignment_id: 12,
+        },
+      ]);
     if (p === "/api/v1/courses/403") {
       res.writeHead(403, { "content-type": "application/json" });
       return res.end(JSON.stringify({ errors: [{ message: "user not authorized" }] }));
@@ -111,11 +174,18 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
 }
 
 describe("canvas-lms-student-mcp", () => {
-  it("exposes only read-only tools", async () => {
+  it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(12);
-    for (const t of tools) expect(t.annotations?.readOnlyHint).toBe(true);
+    expect(tools.length).toBe(13);
+    for (const t of tools) {
+      if (t.name === "export_due_dates_calendar") {
+        expect(t.annotations?.readOnlyHint).toBe(false);
+        expect(t.annotations?.destructiveHint).toBe(false);
+      } else {
+        expect(t.annotations?.readOnlyHint, t.name).toBe(true);
+      }
+    }
   });
 
   it("describes every tool as Canvas specific and includes an example prompt", async () => {
@@ -133,7 +203,7 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(12);
+    expect(listed.length).toBe(13);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
@@ -148,6 +218,7 @@ describe("canvas-lms-student-mcp", () => {
         "get_whats_new",
         "get_discussions",
         "get_calendar_events",
+        "export_due_dates_calendar",
       ]
     `);
 
@@ -326,6 +397,102 @@ describe("canvas-lms-student-mcp", () => {
   it("normalizes school URLs", () => {
     expect(normalizeBaseUrl("myschool.instructure.com")).toBe("https://myschool.instructure.com");
     expect(normalizeBaseUrl("https://myschool.instructure.com/api/v1/")).toBe("https://myschool.instructure.com");
+  });
+});
+
+describe("export_due_dates_calendar", () => {
+  it("writes an .ics file with the Canvas due dates", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "canvas-ics-"));
+    try {
+      const { text, isError } = await call(await connect(), "export_due_dates_calendar", { path: dir });
+      expect(isError).toBe(false);
+      const file = join(dir, "canvas-due-dates.ics");
+      expect(existsSync(file)).toBe(true);
+      const ics = unfold(readFileSync(file, "utf8"));
+      expect(ics).toContain("BEGIN:VCALENDAR");
+      expect(ics).toContain("END:VCALENDAR");
+      expect(ics).toContain("SUMMARY:Lab 4 (Networking 1)");
+      expect(ics).toContain("SUMMARY:Exam (Scripting)");
+      expect(ics).toContain("https://school.instructure.com/courses/1/assignments/12");
+      expect(ics).toContain("Status: not submitted.");
+      expect(ics).toContain("TRIGGER:-P1D");
+      expect(ics).toMatch(/DTSTART:\d{8}T\d{6}Z/);
+      // Lab 5 is already handed in, Lab 6 is excused and Lab 4 has no second copy in the calendar.
+      expect(ics).not.toContain("Lab 5");
+      expect(ics).not.toContain("Lab 6");
+      expect(ics).not.toContain("Lab 4 due date");
+      expect(ics.match(/BEGIN:VEVENT/g)?.length).toBe(2);
+      expect(text).toContain(file);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("adds the work you already handed in when you ask for it", async () => {
+    const { text } = await call(await connect(), "export_due_dates_calendar", { include_submitted: true });
+    expect(text).toContain("SUMMARY:Lab 5 (Networking 1)");
+    expect(text).toContain("SUMMARY:Lab 4 (Networking 1)");
+    expect(text).toContain("SUMMARY:Lab 6 (Networking 1)");
+  });
+
+  it("keeps the calendar to one course when course_id is passed", async () => {
+    const { text } = await call(await connect(), "export_due_dates_calendar", { course_id: 2 });
+    expect(text).toContain("SUMMARY:Exam (Scripting)");
+    expect(text).not.toContain("Networking 1");
+  });
+
+  it("answers with the calendar text when no folder is given", async () => {
+    const { text } = await call(await connect(), "export_due_dates_calendar");
+    expect(text.startsWith("BEGIN:VCALENDAR")).toBe(true);
+    expect(text.trimEnd().endsWith("END:VCALENDAR")).toBe(true);
+    expect(text).toContain("SUMMARY:Lab 4 (Networking 1)");
+  });
+
+  it("makes the folder and uses the file name you ask for", async () => {
+    const dir = join(mkdtempSync(join(tmpdir(), "canvas-ics-")), "fall");
+    try {
+      const { text } = await call(await connect(), "export_due_dates_calendar", { path: dir, filename: "fall.ics" });
+      expect(existsSync(join(dir, "fall.ics"))).toBe(true);
+      expect(text).toContain("fall.ics");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("lists what went into the saved file", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "canvas-ics-"));
+    try {
+      const { text } = await call(await connect(), "export_due_dates_calendar", { path: dir });
+      expect(text).toContain("Lab 4 (Networking 1) due");
+      expect(text).toContain("Exam (Scripting) starts");
+      expect(text).toContain("Open the file or import it in Google Calendar, Apple Calendar or Outlook.");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps every line of the file within the calendar limit", async () => {
+    const { text } = await call(await connect(), "export_due_dates_calendar");
+    for (const line of text.split("\r\n")) {
+      expect(Buffer.byteLength(line, "utf8"), line).toBeLessThanOrEqual(75);
+    }
+  });
+
+  it("asks for a file name that ends in .ics", async () => {
+    const { text } = await call(await connect(), "export_due_dates_calendar", { filename: "notes.txt" });
+    expect(text).toContain("has to end in .ics");
+  });
+
+  it("says when there is nothing to export", async () => {
+    const { text, isError } = await call(await connect(), "export_due_dates_calendar", { course_id: 3 });
+    expect(isError).toBe(false);
+    expect(text).toContain("No Canvas due dates");
+  });
+
+  it("explains an unknown course id", async () => {
+    const { text } = await call(await connect(), "export_due_dates_calendar", { course_id: 55 });
+    expect(text).toContain("No active Canvas course with id 55");
+    expect(text).toContain("get_my_courses");
   });
 });
 

@@ -1,7 +1,7 @@
 {
   "name": "canvas-lms-student-mcp",
   "version": "0.1.4",
-  "description": "Canvas LMS MCP server for students. Read only access to Canvas LMS courses, assignments, due dates, missing work, grades, announcements and calendar events.",
+  "description": "Canvas LMS MCP server for students. Read only access to Canvas LMS courses, assignments, due dates, missing work, grades, announcements and calendar events, plus an .ics calendar export you can import into Google Calendar or Apple Calendar.",
   "type": "module",
   "main": "build/src/index.js",
   "bin": {
@@ -62,6 +62,10 @@
     "modules",
     "discussions",
     "calendar events",
+    "calendar export",
+    "icalendar",
+    "ics file",
+    "due dates calendar",
     "education",
     "edtech",
     "claude",

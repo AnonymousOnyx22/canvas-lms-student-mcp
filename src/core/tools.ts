@@ -4,11 +4,21 @@ import { ApiError } from "./http.js";
 
 export type Shape = Record<string, z.ZodTypeAny>;
 
+/** The hints an MCP client reads before it calls a tool. */
+export interface ToolAnnotations {
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+}
+
 export interface ToolDef<Api> {
   name: string;
   title: string;
   description: string;
   inputSchema: Shape;
+  /** Hints for the client. A tool is read only unless it says otherwise here. */
+  annotations?: ToolAnnotations;
   run: (args: any, api: Api) => Promise<string>;
 }
 
@@ -36,7 +46,7 @@ export function registerTools<Api>(server: McpServer, tools: ToolDef<Api>[], api
         title: tool.title,
         description: tool.description,
         inputSchema: tool.inputSchema,
-        annotations: { readOnlyHint: true, openWorldHint: true },
+        annotations: { readOnlyHint: true, openWorldHint: true, ...tool.annotations },
       },
       async (args: unknown) => runTool(tool, args, api),
     );

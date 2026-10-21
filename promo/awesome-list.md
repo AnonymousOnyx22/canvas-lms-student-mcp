@@ -22,14 +22,14 @@ Copy everything inside the block.
 ```markdown
 ## What this adds
 
-- [Canvas LMS MCP](https://github.com/AnonymousOnyx22/canvas-lms-student-mcp) - Read-only MCP server for Canvas LMS students. Courses, to-do list, due dates, missing work, grades, announcements, syllabus, modules, discussions and calendar events.
+- [Canvas LMS MCP](https://github.com/AnonymousOnyx22/canvas-lms-student-mcp) - Read-only MCP server for Canvas LMS students. Courses, to-do list, due dates, missing work, grades, announcements, syllabus, modules, discussions, calendar events and an .ics calendar export.
 
 ## About the server
 
-Canvas LMS MCP lets AI apps like Claude, ChatGPT and Cursor read a student's Canvas LMS by Instructure courses. It answers things like "what's due this week", "what am I missing" and "what's my grade in each class".
+Canvas LMS MCP lets AI apps like Claude, ChatGPT and Cursor read a student's Canvas LMS by Instructure courses. It answers things like "what's due this week", "what am I missing" and "what's my grade in each class". It can also save your due dates as an .ics file you can import into Google Calendar or Apple Calendar.
 
 - Free and open source, MIT license.
-- Read only by design. There is no tool that submits, edits or deletes anything.
+- Read only by design. There is no tool that submits, edits or deletes anything in Canvas. The only file it writes is the .ics calendar you ask for.
 - Runs with `npx -y canvas-lms-student-mcp` on Node 20 or newer. No install step.
 - Needs two environment variables: `CANVAS_BASE_URL` and `CANVAS_API_TOKEN`. The token is created by the student in Canvas under Account > Settings > New Access Token. `npx canvas-lms-student-mcp doctor` checks both.
 - Works with any school that runs Canvas LMS. Not affiliated with Instructure.
@@ -38,9 +38,9 @@ Canvas LMS MCP lets AI apps like Claude, ChatGPT and Cursor read a student's Can
 
 ## Tools
 
-All 12 tools are read only:
+All 13 tools:
 
-`get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_whats_new`, `get_discussions`, `get_calendar_events`
+`get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_whats_new`, `get_discussions`, `get_calendar_events`, `export_due_dates_calendar`
 
 npm package: https://www.npmjs.com/package/canvas-lms-student-mcp
 ```

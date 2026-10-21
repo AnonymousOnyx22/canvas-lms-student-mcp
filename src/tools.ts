@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { HttpClient } from "./core/http.js";
 import { type ToolDef, bullets, fmtDate, stripHtml } from "./core/tools.js";
+import { type CalendarEvent, buildIcs, isoDay, saveIcsFile } from "./ics.js";
 
 type Api = HttpClient;
 
@@ -43,6 +44,16 @@ function submissionLine(a: any): string {
     if (s.excused) status = "excused";
   }
   return status;
+}
+
+/** True when the student does not have to hand this work in any more. */
+function alreadySettled(s: any): boolean {
+  if (!s) return false;
+  if (s.excused) return true;
+  if (s.score != null) return true;
+  return ["submitted", "graded", "pending_review", "needs_grading", "needs_group_review"].includes(
+    String(s.workflow_state),
+  );
 }
 
 export const tools: ToolDef<Api>[] = [
@@ -343,6 +354,156 @@ export const tools: ToolDef<Api>[] = [
         items.map((e) => `${e.title} on ${fmtDate(e.start_at ?? e.assignment?.due_at)}${e.context_name ? ` (${e.context_name})` : ""}`),
         "No calendar events in that range.",
       );
+    },
+  },
+  {
+    name: "export_due_dates_calendar",
+    title: "Export due dates calendar",
+    description:
+      "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id (ask get_my_courses for it) for one course. Example: \"Put my Canvas due dates in Google Calendar.\"",
+    inputSchema: {
+      days_ahead: z
+        .number()
+        .int()
+        .min(1)
+        .max(120)
+        .optional()
+        .describe("How many days ahead to include. Defaults to 30."),
+      course_id: courseId.optional().describe("Optional, only include one Canvas course."),
+      include_submitted: z
+        .boolean()
+        .optional()
+        .describe("Include the work you already submitted or graded. Defaults to false, so the file only has the work you still owe."),
+      path: z
+        .string()
+        .optional()
+        .describe("Folder to save the .ics file in, for example /Users/you/Documents. It is made if it is not there yet."),
+      filename: z.string().optional().describe("Name for the saved file, for example fall.ics. Defaults to canvas-due-dates.ics."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    run: async ({ days_ahead, course_id, include_submitted, path, filename }, api) => {
+      const days = days_ahead ?? 30;
+      const wantSubmitted = include_submitted === true;
+      const now = new Date();
+      const until = new Date(now.getTime() + days * 86400000);
+
+      const courses = await activeCourses(api);
+      const shown = course_id == null ? courses : courses.filter((c) => String(c.id) === String(course_id));
+      if (!shown.length) {
+        return course_id != null
+          ? `No active Canvas course with id ${course_id}. Ask get_my_courses for the right id.`
+          : "No active courses found.";
+      }
+
+      const events: CalendarEvent[] = [];
+      const assignmentIds = new Set<string>();
+      const skipped: string[] = [];
+
+      for (const c of shown) {
+        let items: any[] = [];
+        try {
+          items = await api.getAll<any>(`/api/v1/courses/${c.id}/assignments`, {
+            "include[]": ["submission"],
+            order_by: "due_at",
+            per_page: 100,
+          });
+        } catch {
+          skipped.push(`the assignments for ${c.name ?? `course ${c.id}`}`);
+          continue;
+        }
+        for (const a of items) {
+          if (a.id != null) assignmentIds.add(String(a.id));
+          const due = a.due_at ? new Date(a.due_at) : null;
+          if (!due || Number.isNaN(due.getTime())) continue;
+          if (due.getTime() < now.getTime() || due.getTime() > until.getTime()) continue;
+          if (!wantSubmitted && alreadySettled(a.submission)) continue;
+          const points = a.points_possible != null ? `${a.points_possible} points. ` : "";
+          events.push({
+            title: a.name ?? "Untitled",
+            course: c.name,
+            kind: "assignment",
+            start: a.due_at,
+            end: a.due_at,
+            url: a.html_url ?? (a.id != null ? `${api.baseUrl}/courses/${c.id}/assignments/${a.id}` : null),
+            note: `${points}Status: ${submissionLine(a)}.`,
+            reminder: `${a.name ?? "Untitled"} is due tomorrow.`,
+            key: `course-${c.id}-assignment-${a.id ?? a.name}`,
+          });
+        }
+      }
+
+      try {
+        const calendar = await api.getAll<any>("/api/v1/calendar_events", {
+          start_date: isoDay(now),
+          end_date: isoDay(until),
+          per_page: 100,
+        });
+        for (const e of calendar) {
+          // A due date that belongs to an assignment is already in the file.
+          if (e.assignment_id != null && assignmentIds.has(String(e.assignment_id))) continue;
+          const context = e.context_id ?? String(e.context_code ?? "").replace(/^course_/, "");
+          if (course_id != null && String(context) !== String(course_id)) continue;
+          const start = e.start_at ? new Date(e.start_at) : null;
+          if (!start || Number.isNaN(start.getTime())) continue;
+          if (start.getTime() < now.getTime() || start.getTime() > until.getTime()) continue;
+          events.push({
+            title: e.title ?? "Untitled",
+            course: e.context_name ?? undefined,
+            kind: "event",
+            start: e.start_at,
+            end: e.end_at,
+            allDay: Boolean(e.all_day),
+            url: e.html_url ?? (e.id != null ? `${api.baseUrl}/calendar/events/${e.id}` : null),
+            note: "Canvas calendar event.",
+            reminder: `${e.title ?? "Untitled"} is tomorrow.`,
+            key: `course-${context}-event-${e.id ?? e.title}`,
+          });
+        }
+      } catch {
+        skipped.push("the Canvas calendar");
+      }
+
+      events.sort((a, b) => String(a.start ?? "").localeCompare(String(b.start ?? "")));
+
+      if (!events.length) {
+        return `No Canvas due dates in the next ${days} days${
+          course_id != null ? ` in course ${course_id}` : ""
+        }, so there is nothing to export.`;
+      }
+
+      const calendarName = course_id != null && shown.length === 1 ? `Canvas due dates: ${shown[0].name}` : "Canvas due dates";
+      const text = buildIcs(events, { name: calendarName });
+
+      const fileName = (filename ?? "").trim() || "canvas-due-dates.ics";
+      if (!fileName.toLowerCase().endsWith(".ics")) {
+        return `The file name has to end in .ics, for example canvas-due-dates.ics. You gave ${fileName}.`;
+      }
+      if (fileName.includes("/") || fileName.includes("\\")) {
+        return `The file name has to be a plain name with no path in it. You gave ${fileName}.`;
+      }
+
+      if (!path) return text;
+
+      let file: string;
+      try {
+        file = await saveIcsFile(path, fileName, text);
+      } catch (err) {
+        throw new Error(
+          `Could not save ${fileName} in ${path}: ${(err as Error).message}. Check the folder path and that you can write to it.`,
+        );
+      }
+
+      const rows = events.map(
+        (e) => `- ${e.title}${e.course ? ` (${e.course})` : ""} ${e.kind === "event" ? "starts" : "due"} ${fmtDate(e.start)}`,
+      );
+      const listed = rows.length > 10 ? [...rows.slice(0, 10), `- and ${rows.length - 10} more`] : rows;
+      const notes = skipped.map((s) => `Canvas would not list ${s}.`);
+      return [
+        `Saved ${events.length} Canvas due date${events.length === 1 ? "" : "s"} to ${file}`,
+        listed.join("\n"),
+        "Open the file or import it in Google Calendar, Apple Calendar or Outlook.",
+        ...notes,
+      ].join("\n");
     },
   },
 ];
