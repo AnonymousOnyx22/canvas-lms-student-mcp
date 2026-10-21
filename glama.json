@@ -5,6 +5,10 @@
   ],
   "tools": [
     {
+      "name": "get_my_courses",
+      "description": "List your active Canvas courses with their Canvas course IDs. Example: \"What are my Canvas courses this term?\""
+    },
+    {
       "name": "get_todo",
       "description": "Your Canvas to-do list: assignments and discussions Canvas says still need attention, with due dates. Example: \"What does Canvas say I still need to do?\""
     },

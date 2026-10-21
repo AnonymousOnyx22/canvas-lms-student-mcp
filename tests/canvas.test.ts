@@ -169,6 +169,22 @@ describe("canvas-lms-student-mcp", () => {
     expect(readme).toContain(`All ${listed.length} tools`);
   });
 
+  it("keeps glama.json in step with the tools the server registers", async () => {
+    const client = await connect();
+    const { tools: listed } = await client.listTools();
+    const glama = JSON.parse(readFileSync(new URL("../glama.json", import.meta.url), "utf8"));
+
+    expect(glama.maintainers).toContain("AnonymousOnyx22");
+    expect(glama.tools.length).toBe(listed.length);
+    expect(glama.tools.map((t: { name: string }) => t.name)).toEqual(listed.map((t) => t.name));
+
+    for (const def of tools) {
+      const entry = glama.tools.find((t: { name: string }) => t.name === def.name);
+      expect(entry, `glama.json entry for ${def.name}`).toBeDefined();
+      expect(entry?.description, `glama.json description of ${def.name}`).toBe(def.description);
+    }
+  });
+
   it("lists courses and follows pagination", async () => {
     const { text } = await call(await connect(), "get_my_courses");
     expect(text).toContain("Networking 1");
