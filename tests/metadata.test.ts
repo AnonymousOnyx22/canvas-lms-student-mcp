@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { VERSION } from "../src/server.js";
+import { tools } from "../src/tools.js";
 
 /** Walk up from this file until a folder with a package.json shows up. */
 function projectRoot(): string {
@@ -100,6 +102,36 @@ describe("published files", () => {
   it("ships the registry files in the npm package", () => {
     expect(pkg.files).toContain("server.json");
     expect(pkg.files).toContain("glama.json");
+  });
+});
+
+describe("one version everywhere", () => {
+  it("keeps the npm page, the registry entry and llms.txt on the same version and tool list", () => {
+    const llms = readFileSync(join(root, "llms.txt"), "utf8");
+    const readme = readFileSync(join(root, "README.md"), "utf8");
+
+    expect(pkg.version).toBe("0.1.4");
+    expect(server.version).toBe("0.1.4");
+    expect(server.packages[0].version).toBe("0.1.4");
+    expect(glama.version).toBe("0.1.4");
+    expect(VERSION).toBe("0.1.4");
+
+    const llmsVersion = llms.match(/^Version:\s*(\S+)\s*$/m);
+    expect(llmsVersion, "llms.txt has no Version line").not.toBeNull();
+    expect(llmsVersion?.[1]).toBe("0.1.4");
+
+    const names = tools.map((t) => t.name).sort();
+    const llmsNames = [...llms.matchAll(/^- ((?:get|export)_[a-z_]+):/gm)].map((m) => m[1]).sort();
+    expect(llmsNames).toEqual(names);
+    expect(glama.tools.map((t: { name: string }) => t.name).sort()).toEqual(names);
+
+    const readOnly = tools.filter((t) => t.annotations?.readOnlyHint !== false);
+    expect(readOnly.length).toBe(12);
+    expect(tools.filter((t) => t.annotations?.readOnlyHint === false).map((t) => t.name)).toEqual([
+      "export_due_dates_calendar",
+    ]);
+    expect(llms).toContain("twelve read only");
+    expect(readme).toContain("Twelve tools are marked read only");
   });
 });
 

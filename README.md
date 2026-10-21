@@ -106,7 +106,7 @@ npm run build
 npm test
 ```
 
-Tests run against a fake Canvas server, so they need no account or network. The doctor command, the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas, and the .ics calendar export are part of that suite. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
+Tests run against a fake Canvas server, so they need no account or network. The doctor command, the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas, and the .ics calendar export are part of that suite. A metadata test keeps package.json, server.json, glama.json, llms.txt and the server code on one version number, and checks that the tool list in the docs still matches the tools the server registers. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
 
 The npm package ships two registry files: `server.json` for the Model Context Protocol registry and `glama.json` for the Glama directory. Both carry the name, the description, the version, the license, the keywords, the repository and the homepage, so a listing shows what the server does and where the code lives.
 
