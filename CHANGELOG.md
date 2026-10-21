@@ -23,6 +23,8 @@
 
 ## Unreleased
 
+- The tool list has a test now. The test takes a snapshot of the names of the 12 tools the server registers, so a tool cannot be dropped by accident, and it checks that every tool is registered with the description it has in the code. The same test checks that the README and llms.txt list every tool with the same description and the same example prompt, which caught that llms.txt did not mention get_my_courses. It does now. The tool names, the parameters and the versions did not change.
+
 - The doctor command and the error messages have tests now. A fake Canvas server answers the doctor request with a good token, a bad token, access denied, a rate limit and a page that is not Canvas. Each case checks the exit code and what the message says. The 403 message and the message for a reply that is not Canvas JSON are checked as well. The doctor command and the tool names did not change.
 
 - Add get_whats_new, one call that sums up what changed in Canvas: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies, grouped into three sections. Pass since_days to change the window, 7 by default, or course_id to check one course only. The existing tools did not change.

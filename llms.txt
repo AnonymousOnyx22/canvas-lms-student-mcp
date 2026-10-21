@@ -8,6 +8,7 @@
 - Run with npx -y canvas-lms-student-mcp. Run `npx canvas-lms-student-mcp doctor` to check the setup.
 
 ## Tools (all read only)
+- get_my_courses: List your active Canvas courses with their Canvas course IDs. Example: "What are my Canvas courses this term?"
 - get_todo: Your Canvas to-do list: assignments and discussions Canvas says still need attention, with due dates. Example: "What does Canvas say I still need to do?"
 - get_upcoming_due_dates: Upcoming assignments and events across every Canvas course, soonest first. Example: "What is due in Canvas this week?"
 - get_missing_assignments: Past-due Canvas assignments you have not submitted, with the course and the day each was due. Example: "What am I missing in Canvas?"

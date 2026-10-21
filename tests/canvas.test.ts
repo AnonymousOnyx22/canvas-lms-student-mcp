@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
+import { readFileSync } from "node:fs";
 import type { AddressInfo } from "node:net";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { ApiError, createClient, describeStatus } from "../src/core/http.js";
 import { createServer } from "../src/server.js";
+import { tools } from "../src/tools.js";
 import { normalizeBaseUrl } from "../src/config.js";
 
 const future = new Date(Date.now() + 2 * 86400000).toISOString();
@@ -123,6 +125,48 @@ describe("canvas-lms-student-mcp", () => {
       expect(t.description, t.name).toContain("Canvas");
       expect(t.description, t.name).toMatch(/Example: "[^"]+"/);
     }
+  });
+
+  it("registers every tool from src/tools.ts and keeps the docs in step", async () => {
+    const client = await connect();
+    const { tools: listed } = await client.listTools();
+
+    // The tool list in src/tools.ts is the source of truth. Update this snapshot
+    // when a tool is added, and the README and llms.txt with it.
+    expect(listed.length).toBe(12);
+    expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
+      [
+        "get_my_courses",
+        "get_todo",
+        "get_upcoming_due_dates",
+        "get_missing_assignments",
+        "get_assignments",
+        "get_my_grades",
+        "get_course_content",
+        "get_syllabus",
+        "get_announcements",
+        "get_whats_new",
+        "get_discussions",
+        "get_calendar_events",
+      ]
+    `);
+
+    const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+    const llms = readFileSync(new URL("../llms.txt", import.meta.url), "utf8");
+
+    for (const def of tools) {
+      const registered = listed.find((t) => t.name === def.name);
+      expect(registered, `tool ${def.name} is not registered`).toBeDefined();
+      expect(registered?.description, `description of ${def.name}`).toBe(def.description);
+
+      const example = def.description.match(/Example: "([^"]+)"/)?.[1];
+      expect(example, `example prompt of ${def.name}`).toBeDefined();
+      expect(readme, `README row for ${def.name}`).toContain(`| \`${def.name}\` |`);
+      expect(readme, `README example for ${def.name}`).toContain(`"${example}"`);
+      expect(llms, `llms.txt entry for ${def.name}`).toContain(`- ${def.name}: ${def.description}`);
+    }
+
+    expect(readme).toContain(`All ${listed.length} tools`);
   });
 
   it("lists courses and follows pagination", async () => {
