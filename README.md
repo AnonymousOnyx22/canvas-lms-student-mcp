@@ -108,6 +108,8 @@ npm test
 
 Tests run against a fake Canvas server, so they need no account or network. The doctor command, the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas, and the .ics calendar export are part of that suite. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
 
+The npm package ships two registry files: `server.json` for the Model Context Protocol registry and `glama.json` for the Glama directory. Both carry the name, the description, the version, the license, the keywords, the repository and the homepage, so a listing shows what the server does and where the code lives.
+
 ## Why Canvas MCP
 
 If your school runs Canvas, use this server. If it runs Brightspace, use brightspace-mcp-server. The two cover the same ground for their own LMS.

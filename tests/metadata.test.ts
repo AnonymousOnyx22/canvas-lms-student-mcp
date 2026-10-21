@@ -20,8 +20,10 @@ function projectRoot(): string {
 const root = projectRoot();
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const server = JSON.parse(readFileSync(join(root, "server.json"), "utf8"));
+const glama = JSON.parse(readFileSync(join(root, "glama.json"), "utf8"));
 
 const PHRASE = "canvas lms mcp";
+const REPO_URL = "https://github.com/AnonymousOnyx22/canvas-lms-student-mcp";
 
 describe("search metadata", () => {
   it("leads with the phrase people search for on npm", () => {
@@ -45,6 +47,59 @@ describe("search metadata", () => {
     expect(pkg.bin["canvas-lms-student-mcp"]).toBe("build/src/index.js");
     expect(pkg.version).toBe(server.version);
     expect(server.packages[0].version).toBe(pkg.version);
+  });
+});
+
+describe("registry metadata", () => {
+  it("gives the official registry the name, the version and the title", () => {
+    expect(server.name).toBe("io.github.AnonymousOnyx22/canvas-lms-student-mcp");
+    expect(server.title).toBe("Canvas LMS MCP for students");
+    expect(server.version).toBe(pkg.version);
+    expect(server.packages[0].identifier).toBe(pkg.name);
+  });
+
+  it("gives the directory listing the name, the version and the type", () => {
+    expect(glama.name).toBe(server.name);
+    expect(glama.version).toBe(pkg.version);
+    expect(glama.type).toBe("stdio");
+    expect(glama.maintainers).toContain("AnonymousOnyx22");
+    expect(glama.description.toLowerCase().startsWith(PHRASE)).toBe(true);
+  });
+
+  it("points both registry files at the same repository and homepage", () => {
+    for (const file of [server, glama]) {
+      expect(file.repository.url).toBe(REPO_URL);
+      expect(file.repository.source).toBe("github");
+      expect(file.homepage).toBe(pkg.homepage);
+    }
+    expect(server.websiteUrl).toBe(pkg.homepage);
+  });
+
+  it("carries the MIT license in both registry files", () => {
+    expect(pkg.license).toBe("MIT");
+    expect(server.license).toBe(pkg.license);
+    expect(glama.license).toBe(pkg.license);
+  });
+
+  it("lists keywords in both registry files that npm also lists", () => {
+    const pkgKeywords = pkg.keywords.map((k: string) => k.toLowerCase());
+
+    for (const file of [server, glama]) {
+      expect(Array.isArray(file.keywords)).toBe(true);
+      expect(file.keywords.length).toBeGreaterThan(0);
+      expect(file.keywords.map((k: string) => k.toLowerCase())).toContain(PHRASE);
+
+      for (const keyword of file.keywords) {
+        expect(pkgKeywords, `keyword ${keyword}`).toContain(keyword.toLowerCase());
+      }
+    }
+  });
+});
+
+describe("published files", () => {
+  it("ships the registry files in the npm package", () => {
+    expect(pkg.files).toContain("server.json");
+    expect(pkg.files).toContain("glama.json");
   });
 });
 

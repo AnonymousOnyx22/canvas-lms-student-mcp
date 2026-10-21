@@ -1,11 +1,50 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.AnonymousOnyx22/canvas-lms-student-mcp",
+  "title": "Canvas LMS MCP for students",
   "description": "Canvas LMS MCP server for students. Read only Canvas courses, grades, due dates, plus .ics export.",
+  "homepage": "https://brightspacemcp.com",
+  "websiteUrl": "https://brightspacemcp.com",
   "repository": {
     "url": "https://github.com/AnonymousOnyx22/canvas-lms-student-mcp",
     "source": "github"
   },
+  "license": "MIT",
+  "keywords": [
+    "canvas lms mcp",
+    "canvas lms mcp server",
+    "canvas lms mcp for students",
+    "canvas mcp server",
+    "mcp server canvas lms",
+    "lms mcp server",
+    "canvas lms",
+    "canvas mcp",
+    "canvas lms api",
+    "canvas api mcp server",
+    "instructure canvas mcp",
+    "model context protocol",
+    "model context protocol server",
+    "mcp server",
+    "mcp",
+    "read only",
+    "assignments",
+    "due dates",
+    "missing work",
+    "grades",
+    "announcements",
+    "syllabus",
+    "modules",
+    "discussions",
+    "calendar events",
+    "calendar export",
+    "icalendar",
+    "education",
+    "student",
+    "students",
+    "college",
+    "university",
+    "school"
+  ],
   "version": "0.1.4",
   "packages": [
     {
@@ -16,6 +55,5 @@
         "type": "stdio"
       }
     }
-  ],
-  "websiteUrl": "https://brightspacemcp.com"
+  ]
 }

@@ -12,7 +12,9 @@
     "README.md",
     "llms.txt",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "server.json",
+    "glama.json"
   ],
   "engines": {
     "node": ">=20"

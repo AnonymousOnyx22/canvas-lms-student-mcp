@@ -23,6 +23,8 @@
 
 ## Unreleased
 
+- The two registry files now carry the full set of metadata. server.json gained the title, the homepage, the license and the keywords. glama.json gained the name, the description, the version, the type, the license, the repository, the homepage and the keywords. The registry description stays inside the 100 character limit and the tool names, the parameters and the versions did not change. Both files are now in the files array of package.json, so the published tarball carries the registry metadata. A test checks the fields of both files and the files list.
+
 - Add export_due_dates_calendar. It turns your Canvas due dates and your Canvas calendar events into an .ics file you can import into Google Calendar, Apple Calendar or Outlook. Give it a folder and the file is saved there, leave the folder out and the calendar text comes back so you can save it yourself. The file holds the next 30 days and only the work you still owe, days_ahead, course_id and include_submitted change that. Every event carries the course name, the points, the submission status, a link back to Canvas and a reminder the day before. It never changes anything in Canvas, the only thing it writes is that one file on your own computer, so it is the one tool that is not marked read only. The other tools, their parameters and the versions did not change.
 
 - glama.json now lists get_my_courses, so the Glama directory card shows every tool instead of leaving one out. A test checks that glama.json lists every tool the server registers, with the description it has in the code, the way the README and llms.txt are checked. The tool names, the parameters and the versions did not change.
