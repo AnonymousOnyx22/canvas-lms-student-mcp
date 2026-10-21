@@ -23,6 +23,8 @@
 
 ## Unreleased
 
+- A course can be named instead of numbered. Every tool that works on one course now takes a course name as well as a course id, so "my Networking 1 course" works as well as 12345. The name is looked up in the list get_my_courses shows, and it is matched by name, by course code and by part of the name. A name that fits no course says so and points back at get_my_courses, and a name that fits more than one course lists them so you can pick the id. The tool names, the parameter names and the versions did not change.
+
 - The server code still said 0.1.1 while the package said 0.1.4. The code now says 0.1.4 as well, so the version the server prints is the version on npm. A new test in tests/metadata.test.ts checks that package.json, server.json, glama.json, llms.txt and the server code all report 0.1.4, and that the twelve read only tools and the one calendar export still match what llms.txt and the README say. The tool names and the parameters did not change.
 
 - The two registry files now carry the full set of metadata. server.json gained the title, the homepage, the license and the keywords. glama.json gained the name, the description, the version, the type, the license, the repository, the homepage and the keywords. The registry description stays inside the 100 character limit and the tool names, the parameters and the versions did not change. Both files are now in the files array of package.json, so the published tarball carries the registry metadata. A test checks the fields of both files and the files list.

@@ -2,28 +2,15 @@ import { z } from "zod";
 import type { HttpClient } from "./core/http.js";
 import { type ToolDef, bullets, fmtDate, stripHtml } from "./core/tools.js";
 import { type CalendarEvent, buildIcs, isoDay, saveIcsFile } from "./ics.js";
+import { activeCourses, pickCourseId, pickCourseIds, pickCourses } from "./courses.js";
 
 type Api = HttpClient;
 
 const courseId = z
   .union([z.string(), z.number()])
-  .describe("Canvas course ID, the number Canvas shows for the course. Ask get_my_courses for it first.");
-
-interface Course {
-  id: number;
-  name?: string;
-  course_code?: string;
-  enrollments?: { type: string; computed_current_score?: number | null; computed_current_grade?: string | null }[];
-}
-
-async function activeCourses(api: Api, extra: Record<string, string[]> = {}): Promise<Course[]> {
-  const courses = await api.getAll<Course>("/api/v1/courses", {
-    enrollment_state: "active",
-    per_page: 100,
-    ...extra,
-  });
-  return courses.filter((c) => c.name);
-}
+  .describe(
+    "Canvas course ID, the number Canvas shows for the course, or the course name such as \"Networking 1\". Ask get_my_courses for the list of IDs and names.",
+  );
 
 /** Keep a section readable: at most 20 lines, then a note about the rest. */
 function cap(lines: string[]): string[] {
@@ -61,7 +48,7 @@ export const tools: ToolDef<Api>[] = [
     name: "get_my_courses",
     title: "My courses",
     description:
-      "List your active Canvas courses with their Canvas course IDs. Example: \"What are my Canvas courses this term?\"",
+      "List your active Canvas courses with their Canvas course IDs. Use a course ID or a course name in the other tools. Example: \"What are my Canvas courses this term?\"",
     inputSchema: {},
     run: async (_args, api) => {
       const courses = await activeCourses(api);
@@ -120,7 +107,7 @@ export const tools: ToolDef<Api>[] = [
     name: "get_assignments",
     title: "Course assignments",
     description:
-      "Assignments for one Canvas course. Pass course_id (ask get_my_courses for it) and get due dates, points and submission status: not submitted, submitted, graded, missing or excused. Set bucket to filter, for example overdue. Example: \"Which Canvas assignments in Networking 1 are overdue?\"",
+      "Assignments for one Canvas course. Pass course_id as the Canvas course ID or as the course name, for example \"Networking 1\", and get due dates, points and submission status: not submitted, submitted, graded, missing or excused. Set bucket to filter, for example overdue. Example: \"Which Canvas assignments in Networking 1 are overdue?\"",
     inputSchema: {
       course_id: courseId,
       bucket: z
@@ -129,7 +116,9 @@ export const tools: ToolDef<Api>[] = [
         .describe("Optional filter, for example overdue or upcoming."),
     },
     run: async ({ course_id, bucket }, api) => {
-      const items = await api.getAll<any>(`/api/v1/courses/${course_id}/assignments`, {
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const items = await api.getAll<any>(`/api/v1/courses/${picked.id}/assignments`, {
         bucket,
         "include[]": ["submission"],
         order_by: "due_at",
@@ -145,18 +134,16 @@ export const tools: ToolDef<Api>[] = [
     name: "get_my_grades",
     title: "My grades",
     description:
-      "Your current grade in each active Canvas course from the Canvas gradebook, with the assignments behind each grade: your score, the points possible and the submission status. Pass course_id (ask get_my_courses for it) for one course only. Example: \"What is my grade in each Canvas course and which assignments make it up?\"",
+      "Your current grade in each active Canvas course from the Canvas gradebook, with the assignments behind each grade: your score, the points possible and the submission status. Pass course_id as the Canvas course ID or as the course name to limit the grades and the breakdown to one course. Example: \"What is my grade in each Canvas course and which assignments make it up?\"",
     inputSchema: {
       course_id: courseId.optional().describe("Optional, limit the grades and the breakdown to one course."),
     },
     run: async ({ course_id }, api) => {
       const courses = await activeCourses(api, { "include[]": ["total_scores"] });
-      const shown = course_id == null ? courses : courses.filter((c) => String(c.id) === String(course_id));
-      if (!shown.length) {
-        return course_id != null
-          ? `No active Canvas course with id ${course_id}. Ask get_my_courses for the right id.`
-          : "No grades found.";
-      }
+      const picked = pickCourses(courses, course_id);
+      if ("message" in picked) return picked.message;
+      const shown = picked.courses;
+      if (!shown.length) return "No grades found.";
       const sections: string[] = [];
       for (const c of shown) {
         const e = c.enrollments?.find((x) => x.type === "student") ?? c.enrollments?.[0];
@@ -196,10 +183,12 @@ export const tools: ToolDef<Api>[] = [
     name: "get_course_content",
     title: "Course content",
     description:
-      "Modules and module items for one Canvas course. Pass course_id (ask get_my_courses for it). Example: \"Show me the Week 3 module in my Canvas Networking course.\"",
+      "Modules and module items for one Canvas course. Pass course_id as the Canvas course ID or as the course name. Example: \"Show me the Week 3 module in my Canvas Networking course.\"",
     inputSchema: { course_id: courseId },
     run: async ({ course_id }, api) => {
-      const modules = await api.getAll<any>(`/api/v1/courses/${course_id}/modules`, { "include[]": ["items"], per_page: 50 });
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const modules = await api.getAll<any>(`/api/v1/courses/${picked.id}/modules`, { "include[]": ["items"], per_page: 50 });
       if (!modules.length) return "This course has no modules.";
       return modules
         .map((m) => {
@@ -213,10 +202,12 @@ export const tools: ToolDef<Api>[] = [
     name: "get_syllabus",
     title: "Syllabus",
     description:
-      "The syllabus text for one Canvas course, with HTML removed. Pass course_id (ask get_my_courses for it). Example: \"What does the Canvas syllabus say about grading in Scripting?\"",
+      "The syllabus text for one Canvas course, with HTML removed. Pass course_id as the Canvas course ID or as the course name. Example: \"What does the Canvas syllabus say about grading in Scripting?\"",
     inputSchema: { course_id: courseId },
     run: async ({ course_id }, api) => {
-      const c = await api.get<any>(`/api/v1/courses/${course_id}`, { "include[]": ["syllabus_body"] });
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const c = await api.get<any>(`/api/v1/courses/${picked.id}`, { "include[]": ["syllabus_body"] });
       return stripHtml(c.syllabus_body) || "This course has no syllabus posted.";
     },
   },
@@ -224,10 +215,17 @@ export const tools: ToolDef<Api>[] = [
     name: "get_announcements",
     title: "Announcements",
     description:
-      "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Example: \"What did my instructors announce in Canvas lately?\"",
+      "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Each course id can be the Canvas course ID or the course name. Example: \"What did my instructors announce in Canvas lately?\"",
     inputSchema: { course_ids: z.array(courseId).optional() },
     run: async ({ course_ids }, api) => {
-      const ids: (string | number)[] = course_ids?.length ? course_ids : (await activeCourses(api)).map((c) => c.id);
+      let ids: number[];
+      if (course_ids?.length) {
+        const picked = await pickCourseIds(api, course_ids);
+        if ("message" in picked) return picked.message;
+        ids = picked.ids;
+      } else {
+        ids = (await activeCourses(api)).map((c) => c.id);
+      }
       if (!ids.length) return "No active courses found.";
       const items = await api.getAll<any>("/api/v1/announcements", {
         "context_codes[]": ids.slice(0, 30).map((i) => `course_${i}`),
@@ -244,7 +242,7 @@ export const tools: ToolDef<Api>[] = [
     name: "get_whats_new",
     title: "What's new",
     description:
-      "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id (ask get_my_courses for it) to check one course. Example: \"What's new in Canvas since last week?\"",
+      "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id as the Canvas course ID or as the course name to check one course. Example: \"What's new in Canvas since last week?\"",
     inputSchema: {
       since_days: z
         .number()
@@ -260,12 +258,10 @@ export const tools: ToolDef<Api>[] = [
       const cutoff = Date.now() - days * 86400000;
       const span = days === 1 ? "1 day" : `${days} days`;
       const courses = await activeCourses(api);
-      const shown = course_id == null ? courses : courses.filter((c) => String(c.id) === String(course_id));
-      if (!shown.length) {
-        return course_id != null
-          ? `No active Canvas course with id ${course_id}. Ask get_my_courses for the right id.`
-          : "No active courses found.";
-      }
+      const picked = pickCourses(courses, course_id);
+      if ("message" in picked) return picked.message;
+      const shown = picked.courses;
+      if (!shown.length) return "No active courses found.";
 
       const annLines: string[] = [];
       try {
@@ -329,10 +325,12 @@ export const tools: ToolDef<Api>[] = [
     name: "get_discussions",
     title: "Discussions",
     description:
-      "Discussion topics for one Canvas course, with unread counts. Pass course_id (ask get_my_courses for it). Example: \"What discussions are open in my Canvas Networking course?\"",
+      "Discussion topics for one Canvas course, with unread counts. Pass course_id as the Canvas course ID or as the course name. Example: \"What discussions are open in my Canvas Networking course?\"",
     inputSchema: { course_id: courseId },
     run: async ({ course_id }, api) => {
-      const items = await api.getAll<any>(`/api/v1/courses/${course_id}/discussion_topics`, { per_page: 30 });
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const items = await api.getAll<any>(`/api/v1/courses/${picked.id}/discussion_topics`, { per_page: 30 });
       return bullets(
         items.map((d) => `${d.title} posted ${fmtDate(d.posted_at)}${d.unread_count ? ` (${d.unread_count} unread)` : ""}`),
         "No discussions.",
@@ -360,7 +358,7 @@ export const tools: ToolDef<Api>[] = [
     name: "export_due_dates_calendar",
     title: "Export due dates calendar",
     description:
-      "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id (ask get_my_courses for it) for one course. Example: \"Put my Canvas due dates in Google Calendar.\"",
+      "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id as the Canvas course ID or as the course name for one course. Example: \"Put my Canvas due dates in Google Calendar.\"",
     inputSchema: {
       days_ahead: z
         .number()
@@ -388,12 +386,12 @@ export const tools: ToolDef<Api>[] = [
       const until = new Date(now.getTime() + days * 86400000);
 
       const courses = await activeCourses(api);
-      const shown = course_id == null ? courses : courses.filter((c) => String(c.id) === String(course_id));
-      if (!shown.length) {
-        return course_id != null
-          ? `No active Canvas course with id ${course_id}. Ask get_my_courses for the right id.`
-          : "No active courses found.";
-      }
+      const picked = pickCourses(courses, course_id);
+      if ("message" in picked) return picked.message;
+      const shown = picked.courses;
+      if (!shown.length) return "No active courses found.";
+      // The course events are filtered by id, so keep the ids the course names point at.
+      const scope = course_id == null ? null : new Set(shown.map((c) => String(c.id)));
 
       const events: CalendarEvent[] = [];
       const assignmentIds = new Set<string>();
@@ -442,7 +440,7 @@ export const tools: ToolDef<Api>[] = [
           // A due date that belongs to an assignment is already in the file.
           if (e.assignment_id != null && assignmentIds.has(String(e.assignment_id))) continue;
           const context = e.context_id ?? String(e.context_code ?? "").replace(/^course_/, "");
-          if (course_id != null && String(context) !== String(course_id)) continue;
+          if (scope && !scope.has(String(context))) continue;
           const start = e.start_at ? new Date(e.start_at) : null;
           if (!start || Number.isNaN(start.getTime())) continue;
           if (start.getTime() < now.getTime() || start.getTime() > until.getTime()) continue;
@@ -467,7 +465,7 @@ export const tools: ToolDef<Api>[] = [
 
       if (!events.length) {
         return `No Canvas due dates in the next ${days} days${
-          course_id != null ? ` in course ${course_id}` : ""
+          scope ? ` in ${shown[0]?.name ?? String(course_id)}` : ""
         }, so there is nothing to export.`;
       }
 

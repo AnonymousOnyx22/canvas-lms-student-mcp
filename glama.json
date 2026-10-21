@@ -51,7 +51,7 @@
   "tools": [
     {
       "name": "get_my_courses",
-      "description": "List your active Canvas courses with their Canvas course IDs. Example: \"What are my Canvas courses this term?\""
+      "description": "List your active Canvas courses with their Canvas course IDs. Use a course ID or a course name in the other tools. Example: \"What are my Canvas courses this term?\""
     },
     {
       "name": "get_todo",
@@ -67,31 +67,31 @@
     },
     {
       "name": "get_assignments",
-      "description": "Assignments for one Canvas course. Pass course_id (ask get_my_courses for it) and get due dates, points and submission status: not submitted, submitted, graded, missing or excused. Set bucket to filter, for example overdue. Example: \"Which Canvas assignments in Networking 1 are overdue?\""
+      "description": "Assignments for one Canvas course. Pass course_id as the Canvas course ID or as the course name, for example \"Networking 1\", and get due dates, points and submission status: not submitted, submitted, graded, missing or excused. Set bucket to filter, for example overdue. Example: \"Which Canvas assignments in Networking 1 are overdue?\""
     },
     {
       "name": "get_my_grades",
-      "description": "Your current grade in each active Canvas course from the Canvas gradebook, with the assignments behind each grade: your score, the points possible and the submission status. Pass course_id (ask get_my_courses for it) for one course only. Example: \"What is my grade in each Canvas course and which assignments make it up?\""
+      "description": "Your current grade in each active Canvas course from the Canvas gradebook, with the assignments behind each grade: your score, the points possible and the submission status. Pass course_id as the Canvas course ID or as the course name to limit the grades and the breakdown to one course. Example: \"What is my grade in each Canvas course and which assignments make it up?\""
     },
     {
       "name": "get_course_content",
-      "description": "Modules and module items for one Canvas course. Pass course_id (ask get_my_courses for it). Example: \"Show me the Week 3 module in my Canvas Networking course.\""
+      "description": "Modules and module items for one Canvas course. Pass course_id as the Canvas course ID or as the course name. Example: \"Show me the Week 3 module in my Canvas Networking course.\""
     },
     {
       "name": "get_syllabus",
-      "description": "The syllabus text for one Canvas course, with HTML removed. Pass course_id (ask get_my_courses for it). Example: \"What does the Canvas syllabus say about grading in Scripting?\""
+      "description": "The syllabus text for one Canvas course, with HTML removed. Pass course_id as the Canvas course ID or as the course name. Example: \"What does the Canvas syllabus say about grading in Scripting?\""
     },
     {
       "name": "get_announcements",
-      "description": "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Example: \"What did my instructors announce in Canvas lately?\""
+      "description": "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Each course id can be the Canvas course ID or the course name. Example: \"What did my instructors announce in Canvas lately?\""
     },
     {
       "name": "get_whats_new",
-      "description": "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id (ask get_my_courses for it) to check one course. Example: \"What's new in Canvas since last week?\""
+      "description": "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id as the Canvas course ID or as the course name to check one course. Example: \"What's new in Canvas since last week?\""
     },
     {
       "name": "get_discussions",
-      "description": "Discussion topics for one Canvas course, with unread counts. Pass course_id (ask get_my_courses for it). Example: \"What discussions are open in my Canvas Networking course?\""
+      "description": "Discussion topics for one Canvas course, with unread counts. Pass course_id as the Canvas course ID or as the course name. Example: \"What discussions are open in my Canvas Networking course?\""
     },
     {
       "name": "get_calendar_events",
@@ -99,7 +99,7 @@
     },
     {
       "name": "export_due_dates_calendar",
-      "description": "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id (ask get_my_courses for it) for one course. Example: \"Put my Canvas due dates in Google Calendar.\""
+      "description": "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id as the Canvas course ID or as the course name for one course. Example: \"Put my Canvas due dates in Google Calendar.\""
     }
   ]
 }

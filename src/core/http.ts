@@ -207,7 +207,7 @@ export function describeStatus(status: number, detail: StatusDetail = {}): strin
     case 403:
       return `Access denied (HTTP 403)${where}.${canvas} Your school may have turned this feature off for students, or this token may belong to a different Canvas account.`;
     case 404:
-      return `Not found (HTTP 404)${where}.${canvas} Check the course or item ID, for example from get_my_courses. If every request answers this way, check CANVAS_BASE_URL points at your school's Canvas site, for example https://myschool.instructure.com.`;
+      return `Not found (HTTP 404)${where}.${canvas} Check the course name or ID, for example from get_my_courses. If every request answers this way, check CANVAS_BASE_URL points at your school's Canvas site, for example https://myschool.instructure.com.`;
     case 429:
       return `Rate limited (HTTP 429)${where}.${canvas} ${retryHint(detail.retryAfter)}`;
     default:

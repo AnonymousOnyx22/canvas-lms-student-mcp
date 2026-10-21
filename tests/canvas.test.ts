@@ -24,6 +24,7 @@ function unfold(ics: string): string {
 let srv: http.Server;
 let base = "";
 let lastAuth = "";
+let lastAnnouncementCodes: string[] = [];
 
 beforeAll(async () => {
   srv = http.createServer((req, res) => {
@@ -45,6 +46,7 @@ beforeAll(async () => {
       const list = [
         { id: 1, name: "Networking 1", course_code: "NET1", enrollments: withScores ? [{ type: "student", computed_current_score: 91.5, computed_current_grade: "A" }] : undefined },
         { id: 2, name: "Scripting", course_code: "SCR2", enrollments: withScores ? [{ type: "student", computed_current_score: null, computed_current_grade: null }] : undefined },
+        { id: 4, name: "Networking 2", course_code: "NET2" },
         { id: 99 },
       ];
       return json(list, { link: `<${base}/api/v1/courses?page=2&enrollment_state=active>; rel="next"` });
@@ -105,15 +107,19 @@ beforeAll(async () => {
         { id: 22, name: "Essay 1", due_at: past, points_possible: 100, submission: { workflow_state: "graded", score: 88, graded_at: past } },
       ]);
     if (p === "/api/v1/courses/3/assignments") return json([]);
+    if (p === "/api/v1/courses/4/assignments") return json([]);
     if (p === "/api/v1/courses/1/modules") return json([{ name: "Week 1", items: [{ title: "Intro video", type: "ExternalUrl" }] }]);
+    if (p === "/api/v1/courses/3/modules") return json([{ name: "Old term", items: [{ title: "Archive notes", type: "File" }] }]);
     if (p === "/api/v1/courses/1") return json({ syllabus_body: "<p>Welcome &amp; hello</p><script>x()</script><p>Grading</p>" });
     if (p === "/api/v1/announcements") {
       const codes = url.searchParams.getAll("context_codes[]");
+      lastAnnouncementCodes = codes;
       return json(codes.length ? [{ title: "Midterm moved", posted_at: past, message: "<p>See <b>new</b> date</p>" }] : []);
     }
     if (p === "/api/v1/courses/1/discussion_topics") return json([{ title: "Week 1 intro", posted_at: past, unread_count: 2 }]);
     if (p === "/api/v1/courses/2/discussion_topics") return json([{ title: "Essay feedback", posted_at: past, unread_count: 1 }]);
     if (p === "/api/v1/courses/3/discussion_topics") return json([]);
+    if (p === "/api/v1/courses/4/discussion_topics") return json([]);
     if (p === "/api/v1/calendar_events")
       return json([
         {
@@ -397,6 +403,78 @@ describe("canvas-lms-student-mcp", () => {
   it("normalizes school URLs", () => {
     expect(normalizeBaseUrl("myschool.instructure.com")).toBe("https://myschool.instructure.com");
     expect(normalizeBaseUrl("https://myschool.instructure.com/api/v1/")).toBe("https://myschool.instructure.com");
+  });
+});
+
+describe("course names", () => {
+  it("takes a course name where a course id goes", async () => {
+    const { text, isError } = await call(await connect(), "get_assignments", { course_id: "Networking 1" });
+    expect(isError).toBe(false);
+    expect(text).toContain("Lab 3");
+    expect(text).toMatch(/Lab 4.*not submitted/);
+  });
+
+  it("takes a course name in any case, a course code and the way people say it", async () => {
+    const lower = (await call(await connect(), "get_assignments", { course_id: "networking 1" })).text;
+    expect(lower).toContain("Lab 3");
+    const code = (await call(await connect(), "get_assignments", { course_id: "NET1" })).text;
+    expect(code).toContain("Lab 3");
+    const said = (await call(await connect(), "get_assignments", { course_id: "my Networking 1 course" })).text;
+    expect(said).toContain("Lab 3");
+  });
+
+  it("takes part of a course name", async () => {
+    const { text } = await call(await connect(), "get_course_content", { course_id: "istor" });
+    expect(text).toContain("Archive notes");
+  });
+
+  it("takes a course name in the tools that work on one course", async () => {
+    expect((await call(await connect(), "get_syllabus", { course_id: "Networking 1" })).text).toContain("Grading");
+    expect((await call(await connect(), "get_discussions", { course_id: "Networking 1" })).text).toContain("2 unread");
+  });
+
+  it("takes a course name in get_my_grades", async () => {
+    const { text } = await call(await connect(), "get_my_grades", { course_id: "Networking 1" });
+    expect(text).toContain("Networking 1 91.5% (A)");
+    expect(text).not.toContain("Scripting");
+  });
+
+  it("takes a course name in get_whats_new", async () => {
+    const { text } = await call(await connect(), "get_whats_new", { course_id: "Networking 1" });
+    expect(text).toContain("Week 1 intro");
+    expect(text).not.toContain("Essay feedback");
+  });
+
+  it("takes a course name in get_announcements", async () => {
+    const { text } = await call(await connect(), "get_announcements", { course_ids: ["Scripting"] });
+    expect(text).toContain("Midterm moved");
+    expect(lastAnnouncementCodes).toEqual(["course_2"]);
+  });
+
+  it("takes a course name in the calendar export", async () => {
+    const { text } = await call(await connect(), "export_due_dates_calendar", { course_id: "Scripting" });
+    expect(text).toContain("SUMMARY:Exam (Scripting)");
+    expect(text).not.toContain("Networking 1");
+  });
+
+  it("says when no course matches the name and points at get_my_courses", async () => {
+    const { text, isError } = await call(await connect(), "get_syllabus", { course_id: "Chemistry 101" });
+    expect(isError).toBe(false);
+    expect(text).toContain('No Canvas course matches "Chemistry 101"');
+    expect(text).toContain("get_my_courses");
+  });
+
+  it("says when a course name fits more than one course", async () => {
+    const { text } = await call(await connect(), "get_assignments", { course_id: "Networking" });
+    expect(text).toContain("matches more than one Canvas course");
+    expect(text).toContain("Networking 1 (id 1)");
+    expect(text).toContain("Networking 2 (id 4)");
+    expect(text).toContain("get_my_courses");
+  });
+
+  it("keeps taking a course id", async () => {
+    const { text } = await call(await connect(), "get_assignments", { course_id: 1 });
+    expect(text).toContain("Lab 3");
   });
 });
 

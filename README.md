@@ -50,11 +50,14 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 - "What did my instructors announce lately?"
 - "What's new in Canvas since last week?"
 - "Show me what's in the Week 3 module for Networking."
+- "Which assignments are still due in my Networking 1 course?"
 - "Put my Canvas due dates in Google Calendar."
 
 ## Tools
 
 All 13 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
+
+Where a tool works on one course, you can name the course instead of looking up its number. Give the Canvas course ID or the course name, for example "Networking 1", and the name is matched against the list `get_my_courses` shows. A name that fits no course says so and points back at `get_my_courses`.
 
 | Tool | What it does | Ask like |
 | --- | --- | --- |
@@ -62,13 +65,13 @@ All 13 tools read from Canvas LMS and none of them can submit, edit or delete an
 | `get_todo` | Your Canvas to-do list | "What does Canvas say I still need to do?" |
 | `get_upcoming_due_dates` | Upcoming assignments and events, soonest first | "What is due in Canvas this week?" |
 | `get_missing_assignments` | Past due work you haven't submitted | "What am I missing in Canvas?" |
-| `get_assignments` | Assignments for a course with due dates and submission status | "Which Canvas assignments in Networking 1 are overdue?" |
+| `get_assignments` | Assignments for a course by ID or name, with due dates and submission status | "Which Canvas assignments in Networking 1 are overdue?" |
 | `get_my_grades` | Current grade for each course, plus the assignment scores and submission status behind it | "What is my grade in each Canvas course and which assignments make it up?" |
-| `get_course_content` | Modules and items for a course | "Show me the Week 3 module in my Canvas Networking course." |
-| `get_syllabus` | A course's syllabus text | "What does the Canvas syllabus say about grading in Scripting?" |
-| `get_announcements` | Recent announcements | "What did my instructors announce in Canvas lately?" |
+| `get_course_content` | Modules and items for a course by ID or name | "Show me the Week 3 module in my Canvas Networking course." |
+| `get_syllabus` | A course's syllabus text, by ID or name | "What does the Canvas syllabus say about grading in Scripting?" |
+| `get_announcements` | Recent announcements, for the courses you name or for all of them | "What did my instructors announce in Canvas lately?" |
 | `get_whats_new` | One catch up: recent announcements, newly graded work and unread discussion replies | "What's new in Canvas since last week?" |
-| `get_discussions` | Discussion topics for a course | "What discussions are open in my Canvas Networking course?" |
+| `get_discussions` | Discussion topics for a course by ID or name | "What discussions are open in my Canvas Networking course?" |
 | `get_calendar_events` | Calendar events between two dates | "What is on my Canvas calendar between 2026-10-01 and 2026-10-31?" |
 | `export_due_dates_calendar` | An .ics file with your due dates, ready to import into Google Calendar or Apple Calendar | "Put my Canvas due dates in Google Calendar." |
 
@@ -76,7 +79,7 @@ All 13 tools read from Canvas LMS and none of them can submit, edit or delete an
 
 `export_due_dates_calendar` turns your Canvas due dates and your Canvas calendar events into an iCalendar file. Name a folder and the file is saved there, for example "Save my Canvas due dates to my Documents folder as an .ics file". Open the file or import it in Google Calendar, Apple Calendar or Outlook.
 
-The file holds the next 30 days and only the work you still owe. Use `days_ahead` for a longer window, `course_id` for one course, and `include_submitted` to add the work you already handed in. Each event carries the course name, the points, the submission status, a link back to Canvas and a reminder the day before. Leave the folder out and the calendar text comes back instead, so you can save it under any name you like.
+The file holds the next 30 days and only the work you still owe. Use `days_ahead` for a longer window, `course_id` for one course by ID or name, and `include_submitted` to add the work you already handed in. Each event carries the course name, the points, the submission status, a link back to Canvas and a reminder the day before. Leave the folder out and the calendar text comes back instead, so you can save it under any name you like.
 
 ## Privacy and security
 
@@ -93,7 +96,7 @@ Errors from Canvas and from the connection say what went wrong and what to fix. 
 | --- | --- |
 | Not signed in | Your token is missing, expired or was revoked. Make a new one in Canvas (Account > Settings > New Access Token), then run `npx canvas-lms-student-mcp doctor`. |
 | Access denied | Your school turned that feature off for students, or the token belongs to a different Canvas account. |
-| Not found | Check the course ID with `get_my_courses`. If every request says not found, `CANVAS_BASE_URL` is wrong. |
+| Not found | Check the course name or ID with `get_my_courses`. If every request says not found, `CANVAS_BASE_URL` is wrong. |
 | Rate limited | Wait the number of seconds the message says, then try again. |
 | Could not reach | The host in `CANVAS_BASE_URL` does not exist. Check the spelling, for example `https://myschool.instructure.com`. |
 | did not return Canvas API JSON | The address in `CANVAS_BASE_URL` is not a Canvas site. Use your school's Canvas address with no extra path. |
@@ -106,7 +109,7 @@ npm run build
 npm test
 ```
 
-Tests run against a fake Canvas server, so they need no account or network. The doctor command, the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas, and the .ics calendar export are part of that suite. A metadata test keeps package.json, server.json, glama.json, llms.txt and the server code on one version number, and checks that the tool list in the docs still matches the tools the server registers. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
+Tests run against a fake Canvas server, so they need no account or network. The doctor command, the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas, the .ics calendar export and the lookup of a course by name are part of that suite. A metadata test keeps package.json, server.json, glama.json, llms.txt and the server code on one version number, and checks that the tool list in the docs still matches the tools the server registers. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
 
 The npm package ships two registry files: `server.json` for the Model Context Protocol registry and `glama.json` for the Glama directory. Both carry the name, the description, the version, the license, the keywords, the repository and the homepage, so a listing shows what the server does and where the code lives.
 
