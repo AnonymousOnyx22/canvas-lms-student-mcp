@@ -99,6 +99,19 @@ npm test
 
 Tests run against a fake Canvas server, so they need no account or network. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
 
+## Why Canvas MCP
+
+If your school runs Canvas, use this server. If it runs Brightspace, use brightspace-mcp-server. The two cover the same ground for their own LMS.
+
+| | Canvas MCP | brightspace-mcp-server |
+| --- | --- | --- |
+| LMS | Canvas (Instructure) | Brightspace (D2L) |
+| Free | Yes | Yes |
+| Read only | Yes | Yes |
+| npx one liner | Yes | Yes |
+
+Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.
+
 ## More free student MCP servers
 
 All free, open source and read only where they touch your accounts. Browse the full list at [brightspacemcp.com/more-mcps](https://brightspacemcp.com/more-mcps/).
