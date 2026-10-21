@@ -52,21 +52,21 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 
 ## Tools
 
-All 11 tools are read only and only read from Canvas LMS. Every tool description includes an example prompt your AI can copy.
+All 11 tools are read only and only read from Canvas LMS. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here.
 
-| Tool | What it does |
-| --- | --- |
-| `get_my_courses` | Your active courses and their IDs |
-| `get_todo` | Your Canvas to-do list |
-| `get_upcoming_due_dates` | Upcoming assignments and events, soonest first |
-| `get_missing_assignments` | Past due work you haven't submitted |
-| `get_assignments` | Assignments for a course with due dates and submission status |
-| `get_my_grades` | Current grade for each course |
-| `get_course_content` | Modules and items for a course |
-| `get_syllabus` | A course's syllabus text |
-| `get_announcements` | Recent announcements |
-| `get_discussions` | Discussion topics for a course |
-| `get_calendar_events` | Calendar events between two dates |
+| Tool | What it does | Ask like |
+| --- | --- | --- |
+| `get_my_courses` | Your active courses and their IDs | "What are my Canvas courses this term?" |
+| `get_todo` | Your Canvas to-do list | "What does Canvas say I still need to do?" |
+| `get_upcoming_due_dates` | Upcoming assignments and events, soonest first | "What is due in Canvas this week?" |
+| `get_missing_assignments` | Past due work you haven't submitted | "What am I missing in Canvas?" |
+| `get_assignments` | Assignments for a course with due dates and submission status | "Which Canvas assignments in Networking 1 are overdue?" |
+| `get_my_grades` | Current grade for each course | "What is my grade in each Canvas course?" |
+| `get_course_content` | Modules and items for a course | "Show me the Week 3 module in my Canvas Networking course." |
+| `get_syllabus` | A course's syllabus text | "What does the Canvas syllabus say about grading in Scripting?" |
+| `get_announcements` | Recent announcements | "What did my instructors announce in Canvas lately?" |
+| `get_discussions` | Discussion topics for a course | "What discussions are open in my Canvas Networking course?" |
+| `get_calendar_events` | Calendar events between two dates | "What is on my Canvas calendar between 2026-10-01 and 2026-10-31?" |
 
 ## Privacy and security
 
