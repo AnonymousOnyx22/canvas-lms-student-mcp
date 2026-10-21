@@ -42,10 +42,11 @@ Ask things like "what's due this week", "what am I missing or overdue", "what's 
 - Modules and module items
 - Syllabus text
 - Recent announcements
+- New announcements, newly graded work and unread discussion replies in one call
 - Discussion topics with unread counts
 - Calendar events between two dates
 
-All 11 tools are read only. The server has no tool that submits, edits or deletes anything, so it can never turn in work or change a grade.
+All 12 tools are read only. The server has no tool that submits, edits or deletes anything, so it can never turn in work or change a grade.
 
 ## Setup
 

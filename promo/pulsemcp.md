@@ -34,10 +34,11 @@ Canvas LMS MCP is a free, open source, read-only MCP server for students who use
 - Read modules and module items
 - Read syllabus text with HTML removed
 - Read recent announcements, for one course or all courses
+- Summarize what is new in one call: recent announcements, newly graded work and unread discussion replies
 - Read discussion topics with unread counts
 - Read calendar events between two dates
 
-All 11 tools are read only. The server has no tool that submits, edits or deletes anything, so it can never turn in work or change a grade.
+All 12 tools are read only. The server has no tool that submits, edits or deletes anything, so it can never turn in work or change a grade.
 
 ## Setup
 
@@ -97,4 +98,4 @@ https://brightspacemcp.com
 
 ## Follow up
 
-After the listing is live, open it once and check that the tools list shows all 11 tools and that the install command survived the paste. Fix the listing in place if a field got truncated.
+After the listing is live, open it once and check that the tools list shows all 12 tools and that the install command survived the paste. Fix the listing in place if a field got truncated.

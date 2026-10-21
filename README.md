@@ -48,11 +48,12 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 - "Do I have anything missing or overdue?"
 - "What's my grade in each class, and which assignments make it up?"
 - "What did my instructors announce lately?"
+- "What's new in Canvas since last week?"
 - "Show me what's in the Week 3 module for Networking."
 
 ## Tools
 
-All 11 tools are read only and only read from Canvas LMS. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here.
+All 12 tools are read only and only read from Canvas LMS. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here.
 
 | Tool | What it does | Ask like |
 | --- | --- | --- |
@@ -65,6 +66,7 @@ All 11 tools are read only and only read from Canvas LMS. Every tool description
 | `get_course_content` | Modules and items for a course | "Show me the Week 3 module in my Canvas Networking course." |
 | `get_syllabus` | A course's syllabus text | "What does the Canvas syllabus say about grading in Scripting?" |
 | `get_announcements` | Recent announcements | "What did my instructors announce in Canvas lately?" |
+| `get_whats_new` | One catch up: recent announcements, newly graded work and unread discussion replies | "What's new in Canvas since last week?" |
 | `get_discussions` | Discussion topics for a course | "What discussions are open in my Canvas Networking course?" |
 | `get_calendar_events` | Calendar events between two dates | "What is on my Canvas calendar between 2026-10-01 and 2026-10-31?" |
 

@@ -24,6 +24,12 @@ async function activeCourses(api: Api, extra: Record<string, string[]> = {}): Pr
   return courses.filter((c) => c.name);
 }
 
+/** Keep a section readable: at most 20 lines, then a note about the rest. */
+function cap(lines: string[]): string[] {
+  if (lines.length <= 20) return lines;
+  return [...lines.slice(0, 20), `and ${lines.length - 20} more`];
+}
+
 function submissionLine(a: any): string {
   const s = a.submission;
   let status = "not submitted";
@@ -221,6 +227,91 @@ export const tools: ToolDef<Api>[] = [
         items.slice(0, 20).map((a) => `${a.title} (${fmtDate(a.posted_at)})\n  ${stripHtml(a.message, 400).replace(/\n/g, " ")}`),
         "No recent announcements.",
       );
+    },
+  },
+  {
+    name: "get_whats_new",
+    title: "What's new",
+    description:
+      "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id (ask get_my_courses for it) to check one course. Example: \"What's new in Canvas since last week?\"",
+    inputSchema: {
+      since_days: z
+        .number()
+        .int()
+        .min(1)
+        .max(60)
+        .optional()
+        .describe("How many days back to look for new announcements and newly graded work. Defaults to 7."),
+      course_id: courseId.optional().describe("Optional, check one Canvas course only."),
+    },
+    run: async ({ since_days, course_id }, api) => {
+      const days = since_days ?? 7;
+      const cutoff = Date.now() - days * 86400000;
+      const span = days === 1 ? "1 day" : `${days} days`;
+      const courses = await activeCourses(api);
+      const shown = course_id == null ? courses : courses.filter((c) => String(c.id) === String(course_id));
+      if (!shown.length) {
+        return course_id != null
+          ? `No active Canvas course with id ${course_id}. Ask get_my_courses for the right id.`
+          : "No active courses found.";
+      }
+
+      const annLines: string[] = [];
+      try {
+        const items = await api.getAll<any>("/api/v1/announcements", {
+          "context_codes[]": shown.map((c) => `course_${c.id}`),
+          active_only: true,
+          per_page: 20,
+        });
+        for (const a of items) {
+          if (a.posted_at && Date.parse(a.posted_at) < cutoff) continue;
+          annLines.push(`${a.title} (${fmtDate(a.posted_at)})\n  ${stripHtml(a.message, 200).replace(/\n/g, " ")}`);
+        }
+      } catch {
+        annLines.push("Canvas would not list the announcements for these courses.");
+      }
+
+      const gradeLines: string[] = [];
+      for (const c of shown) {
+        try {
+          const items = await api.getAll<any>(`/api/v1/courses/${c.id}/assignments`, {
+            "include[]": ["submission"],
+            order_by: "due_at",
+            per_page: 100,
+          });
+          for (const a of items) {
+            const s = a.submission;
+            if (!s || s.workflow_state !== "graded" || !s.graded_at) continue;
+            if (Date.parse(s.graded_at) < cutoff) continue;
+            const score = s.score != null ? `${s.score}/${a.points_possible ?? "?"}` : "graded";
+            gradeLines.push(`${a.name}: ${score} in ${c.name} (${fmtDate(s.graded_at)})`);
+          }
+        } catch {
+          gradeLines.push(`Canvas would not list the assignments for ${c.name}.`);
+        }
+      }
+
+      const discLines: string[] = [];
+      for (const c of shown) {
+        try {
+          const items = await api.getAll<any>(`/api/v1/courses/${c.id}/discussion_topics`, { per_page: 30 });
+          for (const d of items) {
+            if (!d.unread_count) continue;
+            discLines.push(`${d.title} (${d.unread_count} unread in ${c.name}, posted ${fmtDate(d.posted_at)})`);
+          }
+        } catch {
+          discLines.push(`Canvas would not list the discussions for ${c.name}.`);
+        }
+      }
+
+      if (!annLines.length && !gradeLines.length && !discLines.length) {
+        return `Nothing new in Canvas: no announcements or newly graded work in the last ${span}, and no unread discussion replies.`;
+      }
+      return [
+        `New announcements (last ${span})\n${bullets(cap(annLines), "None.")}`,
+        `Newly graded (last ${span})\n${bullets(cap(gradeLines), "None.")}`,
+        `Unread discussion replies\n${bullets(cap(discLines), "None.")}`,
+      ].join("\n\n");
     },
   },
   {

@@ -16,7 +16,7 @@ Every claim in these files comes from the code and the README. If you change any
 
 - npm package `canvas-lms-student-mcp`, run with `npx -y canvas-lms-student-mcp`. No install step.
 - Needs two environment variables: `CANVAS_BASE_URL` and `CANVAS_API_TOKEN`. `npx canvas-lms-student-mcp doctor` checks both.
-- 11 tools, all read only: `get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_discussions`, `get_calendar_events`.
+- 12 tools, all read only: `get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_whats_new`, `get_discussions`, `get_calendar_events`.
 - Cannot submit, edit or delete anything. There is no write tool in the server.
 - Works with any school that runs Canvas LMS by Instructure. Not affiliated with Instructure.
 - MIT license. Needs Node 20 or newer.

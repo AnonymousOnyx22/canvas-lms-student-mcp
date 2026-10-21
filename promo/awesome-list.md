@@ -38,9 +38,9 @@ Canvas LMS MCP lets AI apps like Claude, ChatGPT and Cursor read a student's Can
 
 ## Tools
 
-All 11 tools are read only:
+All 12 tools are read only:
 
-`get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_discussions`, `get_calendar_events`
+`get_my_courses`, `get_todo`, `get_upcoming_due_dates`, `get_missing_assignments`, `get_assignments`, `get_my_grades`, `get_course_content`, `get_syllabus`, `get_announcements`, `get_whats_new`, `get_discussions`, `get_calendar_events`
 
 npm package: https://www.npmjs.com/package/canvas-lms-student-mcp
 ```

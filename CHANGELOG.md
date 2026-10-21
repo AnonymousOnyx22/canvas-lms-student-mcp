@@ -23,6 +23,8 @@
 
 ## Unreleased
 
+- Add get_whats_new, one call that sums up what changed in Canvas: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies, grouped into three sections. Pass since_days to change the window, 7 by default, or course_id to check one course only. The existing tools did not change.
+
 - get_my_grades now shows the evidence behind each course grade. Under every course it lists the assignments that count toward the grade, meaning anything graded, submitted, missing or excused, with your score, the points possible and the submission status. An optional course_id limits the answer to one course. The tool name and the grade summary it already returned did not change.
 
 - Updated the development tools. TypeScript moved from 5.6 to 7, Vitest from 2.1 to 4.1 and the Node type definitions from 22 to 26, so a fresh install no longer pulls old packages. The tsconfig now names the Node types so TypeScript 7 finds them. The README shows a CI badge that points at the workflow that runs the build and the tests, and a new test checks that the badge and the workflow file still match. The package name, the version, the tool names and the runtime dependencies did not change.

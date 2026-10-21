@@ -9,6 +9,7 @@ import { normalizeBaseUrl } from "../src/config.js";
 
 const future = new Date(Date.now() + 2 * 86400000).toISOString();
 const past = new Date(Date.now() - 2 * 86400000).toISOString();
+const longAgo = new Date(Date.now() - 30 * 86400000).toISOString();
 
 let srv: http.Server;
 let base = "";
@@ -47,13 +48,17 @@ beforeAll(async () => {
     if (p === "/api/v1/users/self/missing_submissions") return json([{ name: "Reflection", course_id: 1, due_at: past, course: { name: "Networking 1" } }]);
     if (p === "/api/v1/courses/1/assignments")
       return json([
-        { name: "Lab 3", due_at: past, points_possible: 10, submission: { workflow_state: "graded", score: 9 } },
+        { name: "Lab 3", due_at: past, points_possible: 10, submission: { workflow_state: "graded", score: 9, graded_at: past } },
         { name: "Lab 4", due_at: future, points_possible: 10, submission: { workflow_state: "unsubmitted" } },
         { name: "Lab 5", due_at: future, points_possible: 10, submission: { workflow_state: "submitted" } },
         { name: "Lab 2", due_at: past, points_possible: 10, submission: { workflow_state: "unsubmitted", missing: true } },
       ]);
     if (p === "/api/v1/courses/2/assignments")
-      return json([{ name: "Essay 1", due_at: past, points_possible: 100, submission: { workflow_state: "graded", score: 88 } }]);
+      return json([
+        { name: "Quiz 0", due_at: longAgo, points_possible: 10, submission: { workflow_state: "graded", score: 10, graded_at: longAgo } },
+        { name: "Essay 1", due_at: past, points_possible: 100, submission: { workflow_state: "graded", score: 88, graded_at: past } },
+      ]);
+    if (p === "/api/v1/courses/3/assignments") return json([]);
     if (p === "/api/v1/courses/1/modules") return json([{ name: "Week 1", items: [{ title: "Intro video", type: "ExternalUrl" }] }]);
     if (p === "/api/v1/courses/1") return json({ syllabus_body: "<p>Welcome &amp; hello</p><script>x()</script><p>Grading</p>" });
     if (p === "/api/v1/announcements") {
@@ -61,6 +66,8 @@ beforeAll(async () => {
       return json(codes.length ? [{ title: "Midterm moved", posted_at: past, message: "<p>See <b>new</b> date</p>" }] : []);
     }
     if (p === "/api/v1/courses/1/discussion_topics") return json([{ title: "Week 1 intro", posted_at: past, unread_count: 2 }]);
+    if (p === "/api/v1/courses/2/discussion_topics") return json([{ title: "Essay feedback", posted_at: past, unread_count: 1 }]);
+    if (p === "/api/v1/courses/3/discussion_topics") return json([]);
     if (p === "/api/v1/calendar_events") return json([{ title: "Exam", start_at: future, context_name: "Scripting" }]);
     if (p === "/api/v1/courses/403") {
       res.writeHead(403, { "content-type": "application/json" });
@@ -105,7 +112,7 @@ describe("canvas-lms-student-mcp", () => {
   it("exposes only read-only tools", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(11);
+    expect(tools.length).toBe(12);
     for (const t of tools) expect(t.annotations?.readOnlyHint).toBe(true);
   });
 
@@ -180,6 +187,41 @@ describe("canvas-lms-student-mcp", () => {
     expect((await call(c, "get_announcements")).text).toContain("Midterm moved");
     expect((await call(c, "get_discussions", { course_id: 1 })).text).toContain("2 unread");
     expect((await call(c, "get_calendar_events", { start_date: "2026-10-01" })).text).toContain("Exam");
+  });
+
+  it("summarizes new announcements, newly graded work and unread replies in get_whats_new", async () => {
+    const { text } = await call(await connect(), "get_whats_new");
+    expect(text).toContain("Midterm moved");
+    expect(text).toContain("See new date");
+    expect(text).toMatch(/Lab 3: 9\/10 in Networking 1/);
+    expect(text).toMatch(/Essay 1: 88\/100 in Scripting/);
+    expect(text).not.toContain("Quiz 0");
+    expect(text).toContain("Week 1 intro (2 unread in Networking 1");
+    expect(text).toContain("Essay feedback (1 unread in Scripting");
+  });
+
+  it("narrows get_whats_new to one course or a shorter window", async () => {
+    const one = (await call(await connect(), "get_whats_new", { course_id: 2 })).text;
+    expect(one).toContain("Essay 1: 88/100");
+    expect(one).not.toContain("Lab 3");
+    expect(one).not.toContain("Week 1 intro");
+    const short = (await call(await connect(), "get_whats_new", { since_days: 1 })).text;
+    expect(short).toContain("Week 1 intro");
+    expect(short).not.toContain("Midterm moved");
+    expect(short).not.toContain("Essay 1");
+  });
+
+  it("says nothing is new when the window excludes everything", async () => {
+    const { text, isError } = await call(await connect(), "get_whats_new", { since_days: 1, course_id: 3 });
+    expect(isError).toBe(false);
+    expect(text).toContain("Nothing new in Canvas");
+    expect(text).toContain("1 day");
+  });
+
+  it("explains an unknown course id in get_whats_new", async () => {
+    const { text } = await call(await connect(), "get_whats_new", { course_id: 55 });
+    expect(text).toContain("No active Canvas course with id 55");
+    expect(text).toContain("get_my_courses");
   });
 
   it("returns a friendly, actionable error when the token is bad", async () => {
