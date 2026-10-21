@@ -7,7 +7,8 @@
   "websiteUrl": "https://brightspacemcp.com",
   "repository": {
     "url": "https://github.com/AnonymousOnyx22/canvas-lms-student-mcp",
-    "source": "github"
+    "source": "github",
+    "id": "1419670110"
   },
   "license": "MIT",
   "keywords": [
@@ -49,11 +50,34 @@
   "packages": [
     {
       "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "canvas-lms-student-mcp",
       "version": "0.1.4",
+      "runtimeHint": "npx",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
       "transport": {
         "type": "stdio"
-      }
+      },
+      "environmentVariables": [
+        {
+          "name": "CANVAS_BASE_URL",
+          "description": "Your school's Canvas address, for example https://myschool.instructure.com",
+          "placeholder": "https://yourschool.instructure.com",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "CANVAS_API_TOKEN",
+          "description": "A Canvas access token, created in Canvas under Account > Settings > New Access Token",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
     }
   ]
 }

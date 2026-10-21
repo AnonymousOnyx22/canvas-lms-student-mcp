@@ -52,12 +52,58 @@ describe("search metadata", () => {
   });
 });
 
+describe("registry package entry", () => {
+  const npmPackage = server.packages[0];
+
+  it("runs the server with npx the way the README says", () => {
+    expect(npmPackage.runtimeHint).toBe("npx");
+    expect(npmPackage.runtimeArguments).toContainEqual({ type: "positional", value: "-y" });
+    expect(readFileSync(join(root, "README.md"), "utf8")).toContain("npx -y canvas-lms-student-mcp");
+  });
+
+  it("points the npm registry at the npm package it ships in", () => {
+    expect(npmPackage.registryType).toBe("npm");
+    expect(npmPackage.registryBaseUrl).toBe("https://registry.npmjs.org");
+  });
+
+  it("asks for every environment variable the server reads", () => {
+    const source = readFileSync(join(root, "src", "cli.ts"), "utf8");
+    const needed = [...source.matchAll(/env\.([A-Z0-9_]+)/g)].map((m) => m[1]);
+    const names = npmPackage.environmentVariables.map((v: { name: string }) => v.name);
+
+    expect(needed.length).toBeGreaterThan(0);
+    expect(names.sort()).toEqual([...new Set(needed)].sort());
+  });
+
+  it("marks both variables as required and the token as secret", () => {
+    const baseUrl = npmPackage.environmentVariables.find((v: { name: string }) => v.name === "CANVAS_BASE_URL");
+    const token = npmPackage.environmentVariables.find((v: { name: string }) => v.name === "CANVAS_API_TOKEN");
+
+    expect(baseUrl?.isRequired).toBe(true);
+    expect(baseUrl?.isSecret).toBe(false);
+    expect(token?.isRequired).toBe(true);
+    expect(token?.isSecret).toBe(true);
+  });
+
+  it("tells the reader where each value comes from", () => {
+    const baseUrl = npmPackage.environmentVariables.find((v: { name: string }) => v.name === "CANVAS_BASE_URL");
+    const token = npmPackage.environmentVariables.find((v: { name: string }) => v.name === "CANVAS_API_TOKEN");
+
+    expect(baseUrl?.description).toContain("https://myschool.instructure.com");
+    expect(token?.description).toContain("New Access Token");
+  });
+});
+
 describe("registry metadata", () => {
   it("gives the official registry the name, the version and the title", () => {
     expect(server.name).toBe("io.github.AnonymousOnyx22/canvas-lms-student-mcp");
     expect(server.title).toBe("Canvas LMS MCP for students");
     expect(server.version).toBe(pkg.version);
     expect(server.packages[0].identifier).toBe(pkg.name);
+  });
+
+  it("records the GitHub repository id", () => {
+    expect(server.repository.id).toBe("1419670110");
   });
 
   it("gives the directory listing the name, the version and the type", () => {
