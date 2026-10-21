@@ -86,12 +86,3 @@ export function stripHtml(html?: string | null, max = 4000): string {
 export function bullets(lines: string[], empty = "Nothing to show."): string {
   return lines.length ? lines.map((l) => `- ${l}`).join("\n") : empty;
 }
-
-export function requireEnv(name: string, hint: string): string {
-  const v = process.env[name];
-  if (!v) {
-    console.error(`Missing ${name}. ${hint}`);
-    process.exit(1);
-  }
-  return v;
-}

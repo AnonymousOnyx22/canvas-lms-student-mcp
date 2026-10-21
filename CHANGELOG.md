@@ -23,6 +23,8 @@
 
 ## Unreleased
 
+- The doctor command and the error messages have tests now. A fake Canvas server answers the doctor request with a good token, a bad token, access denied, a rate limit and a page that is not Canvas. Each case checks the exit code and what the message says. The 403 message and the message for a reply that is not Canvas JSON are checked as well. The doctor command and the tool names did not change.
+
 - Add get_whats_new, one call that sums up what changed in Canvas: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies, grouped into three sections. Pass since_days to change the window, 7 by default, or course_id to check one course only. The existing tools did not change.
 
 - get_my_grades now shows the evidence behind each course grade. Under every course it lists the assignments that count toward the grade, meaning anything graded, submitted, missing or excused, with your score, the points possible and the submission status. An optional course_id limits the answer to one course. The tool name and the grade summary it already returned did not change.

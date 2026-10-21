@@ -284,6 +284,48 @@ describe("status messages", () => {
     expect(describeStatus(429, { retryAfter: null })).toContain("a minute");
   });
 
+  it("explains access denied on 403", () => {
+    const body = JSON.stringify({ errors: [{ message: "user not authorized" }] });
+    const msg = describeStatus(403, { body, host: "myschool.instructure.com" });
+    expect(msg).toContain("Access denied");
+    expect(msg).toContain("myschool.instructure.com");
+    expect(msg).toContain("user not authorized");
+    expect(msg).toContain("turned this feature off for students");
+  });
+
+  it("points a 401 at the doctor command", () => {
+    expect(describeStatus(401, {})).toContain("canvas-lms-student-mcp doctor");
+  });
+
+  it("blames CANVAS_BASE_URL when the answer is not Canvas JSON", async () => {
+    const html = createClient({
+      baseUrl: "https://canvas.example.edu",
+      fetchImpl: (async () =>
+        new Response("<html><body>Not Canvas</body></html>", {
+          status: 200,
+          headers: { "content-type": "text/html" },
+        })) as unknown as typeof fetch,
+    });
+    const err = (await html.get("/api/v1/users/self").catch((e: unknown) => e)) as ApiError;
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.message).toContain("did not return Canvas API JSON");
+    expect(err.message).toContain("text/html");
+    expect(err.message).toContain("canvas.example.edu");
+    expect(err.message).toContain("CANVAS_BASE_URL");
+  });
+
+  it("blames CANVAS_BASE_URL when the answer is empty", async () => {
+    const empty = createClient({
+      baseUrl: "https://canvas.example.edu",
+      fetchImpl: (async () =>
+        new Response("", { status: 200, headers: { "content-type": "application/json" } })) as unknown as typeof fetch,
+    });
+    const err = (await empty.get("/api/v1/users/self").catch((e: unknown) => e)) as ApiError;
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.message).toContain("empty response instead of Canvas API JSON");
+    expect(err.message).toContain("CANVAS_BASE_URL");
+  });
+
   it("explains unreachable hosts", async () => {
     const failure = Object.assign(new Error("getaddrinfo ENOTFOUND canvas.example.edu"), { code: "ENOTFOUND" });
     const api = createClient({

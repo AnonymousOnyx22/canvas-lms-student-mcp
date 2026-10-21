@@ -97,7 +97,7 @@ npm run build
 npm test
 ```
 
-Tests run against a fake Canvas server, so they need no account or network. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
+Tests run against a fake Canvas server, so they need no account or network. The doctor command and the error messages for a bad token, access denied, a rate limit and a reply that is not Canvas are part of that suite. Pushing to main and opening a pull request run the same build and test, so the badge at the top of this page shows the current result.
 
 ## Why Canvas MCP
 
