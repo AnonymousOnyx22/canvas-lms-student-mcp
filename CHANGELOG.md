@@ -1,8 +1,10 @@
 # Changelog
 
-## 0.1.5
+## Unreleased
 
 - The npm keywords now cover long tail searches as well as the main phrase. Alongside "canvas lms mcp" and its variants, the package lists terms people search for, such as "canvas assignment tracker", "canvas due date tracker", "canvas gradebook", "canvas missing assignments", "assignment tracker", "due date tracker", "homework tracker" and "what is due this week". A new test keeps those terms in the list and checks that no keyword is repeated. The tool names, the parameters and the versions did not change.
+
+## 0.1.5
 
 - A course can be named instead of numbered. Every tool that works on one course now takes a course name as well as a course id, so "my Networking 1 course" works as well as 12345. The name is looked up in the list get_my_courses shows, and it is matched by name, by course code and by part of the name. A name that fits no course says so and points back at get_my_courses, and a name that fits more than one course lists them so you can pick the id. The tool names, the parameter names and the versions did not change.
 
