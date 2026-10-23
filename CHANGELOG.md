@@ -1,27 +1,6 @@
 # Changelog
 
-## 0.1.4
-
-- Add Ask like example prompts to README Tools table
-- Deepen get_my_grades with per course assignment breakdown
-
-## 0.1.3
-
-- Small fixes and clearer docs
-
-## 0.1.2
-
-- Rewrite npm description and keywords around canvas lms mcp
-- Refresh devDependencies and add a CI badge to the README
-- Publish a canvas lms mcp awesome-list and listing pack in promo/
-- Return actionable errors for bad Canvas tokens, 401/403 and rate limits
-- Rename tools to canvashub-style verbs and add example prompts to every description
-- Rework the README first screen: H1, one-line promise, install command, Canvas base URL env var
-- Rewrite package.json description and keywords for "canvas lms mcp"
-- Shorten the server.json description to 100 characters (it is 171)
-- search-rank
-
-## Unreleased
+## 0.1.5
 
 - The metadata test no longer writes the version and the tool counts down by hand. It takes the version from package.json and counts the read only tools from the code, then checks that server.json, glama.json, llms.txt and the server code report that same version, and that llms.txt and the README spell out the same number of read only tools. A release now means changing the version in one place, and a new tool means updating the docs with the number the test asks for. The tool names, the parameters and the versions did not change.
 
@@ -50,6 +29,27 @@
 - Errors are now actionable. A bad or expired token says how to make a new one and to run the doctor command. 403 and 429 include the message Canvas sent back, and a 429 repeats how long Canvas asked you to wait. An unreachable host, a host that is not Canvas, and an empty or non-JSON reply all blame `CANVAS_BASE_URL` and show a correct example address. The tool names and parameters did not change.
 - Rewrote every tool description to say it works with Canvas and to end with an example prompt, so AI apps can pick the right tool and see how course_id and submission status work. The tool names and parameters did not change. Added a test that keeps every description that way.
 - Rewrote the package description and the README opening around the phrase "canvas lms mcp" for npm search, and trimmed the keywords to the same phrase and its parts. No code changed.
+
+## 0.1.4
+
+- Add Ask like example prompts to README Tools table
+- Deepen get_my_grades with per course assignment breakdown
+
+## 0.1.3
+
+- Small fixes and clearer docs
+
+## 0.1.2
+
+- Rewrite npm description and keywords around canvas lms mcp
+- Refresh devDependencies and add a CI badge to the README
+- Publish a canvas lms mcp awesome-list and listing pack in promo/
+- Return actionable errors for bad Canvas tokens, 401/403 and rate limits
+- Rename tools to canvashub-style verbs and add example prompts to every description
+- Rework the README first screen: H1, one-line promise, install command, Canvas base URL env var
+- Rewrite package.json description and keywords for "canvas lms mcp"
+- Shorten the server.json description to 100 characters (it is 171)
+- search-rank
 
 ## 0.1.1
 
