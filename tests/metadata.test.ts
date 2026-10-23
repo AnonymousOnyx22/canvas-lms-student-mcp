@@ -68,6 +68,31 @@ describe("search metadata", () => {
     expect(keywords).toContain("canvas mcp server");
   });
 
+  it("covers the long tail searches students type", () => {
+    const keywords = pkg.keywords.map((k: string) => k.toLowerCase());
+
+    for (const keyword of [
+      "canvas assignment tracker",
+      "canvas due date tracker",
+      "canvas gradebook",
+      "canvas missing assignments",
+      "canvas calendar export",
+      "assignment tracker",
+      "due date tracker",
+      "homework tracker",
+      "college assignment tracker",
+      "what is due this week",
+    ]) {
+      expect(keywords, `keyword ${keyword}`).toContain(keyword);
+    }
+  });
+
+  it("lists every keyword once", () => {
+    const keywords = pkg.keywords.map((k: string) => k.toLowerCase());
+
+    expect(new Set(keywords).size).toBe(keywords.length);
+  });
+
   it("keeps the package name, the bin entry and the versions as they are", () => {
     expect(pkg.name).toBe("canvas-lms-student-mcp");
     expect(pkg.bin["canvas-lms-student-mcp"]).toBe("build/src/index.js");
