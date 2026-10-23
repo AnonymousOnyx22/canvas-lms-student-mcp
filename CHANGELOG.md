@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added the math behind the coming target grade tool as a tested helper in src/grades.ts. It adds up the points Canvas has graded and the points still to come, then works out the points and the percent needed on the work left to reach a target percent. Excused work, work Canvas keeps out of the final grade, assignments whose grading type is not graded and assignments worth no points are left out. When Canvas reports a course percent, that percent is used for the graded work, so weighted groups and dropped scores are respected. It says when the target is already held, when it is out of reach and the best finish, and when no work is left or no points are posted. No tool is registered yet, so the tool list, the parameters, the counts in the docs and the version did not change.
+
 - The npm keywords now cover long tail searches as well as the main phrase. Alongside "canvas lms mcp" and its variants, the package lists terms people search for, such as "canvas assignment tracker", "canvas due date tracker", "canvas gradebook", "canvas missing assignments", "assignment tracker", "due date tracker", "homework tracker" and "what is due this week". A new test keeps those terms in the list and checks that no keyword is repeated. The tool names, the parameters and the versions did not change.
 
 ## 0.1.5
