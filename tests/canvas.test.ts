@@ -183,7 +183,7 @@ describe("canvas-lms-student-mcp", () => {
   it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(13);
+    expect(tools.length).toBe(14);
     for (const t of tools) {
       if (t.name === "export_due_dates_calendar") {
         expect(t.annotations?.readOnlyHint).toBe(false);
@@ -209,7 +209,7 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(13);
+    expect(listed.length).toBe(14);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
@@ -224,6 +224,7 @@ describe("canvas-lms-student-mcp", () => {
         "get_whats_new",
         "get_discussions",
         "get_calendar_events",
+        "get_target_grade",
         "export_due_dates_calendar",
       ]
     `);
@@ -455,6 +456,16 @@ describe("course names", () => {
     const { text } = await call(await connect(), "export_due_dates_calendar", { course_id: "Scripting" });
     expect(text).toContain("SUMMARY:Exam (Scripting)");
     expect(text).not.toContain("Networking 1");
+  });
+
+  it("takes a course name in get_target_grade", async () => {
+    const { text, isError } = await call(await connect(), "get_target_grade", {
+      course_id: "Networking 1",
+      target_percent: 85,
+    });
+    expect(isError).toBe(false);
+    expect(text).toContain("Networking 1");
+    expect(text).toMatch(/Target 85%/);
   });
 
   it("says when no course matches the name and points at get_my_courses", async () => {

@@ -3,6 +3,7 @@ import type { HttpClient } from "./core/http.js";
 import { type ToolDef, bullets, fmtDate, stripHtml } from "./core/tools.js";
 import { type CalendarEvent, buildIcs, isoDay, saveIcsFile } from "./ics.js";
 import { activeCourses, pickCourseId, pickCourseIds, pickCourses } from "./courses.js";
+import { gradePoints, targetGrade } from "./grades.js";
 
 type Api = HttpClient;
 
@@ -352,6 +353,74 @@ export const tools: ToolDef<Api>[] = [
         items.map((e) => `${e.title} on ${fmtDate(e.start_at ?? e.assignment?.due_at)}${e.context_name ? ` (${e.context_name})` : ""}`),
         "No calendar events in that range.",
       );
+    },
+  },
+  {
+    name: "get_target_grade",
+    title: "Target grade",
+    description:
+      "Work out what score is needed on the remaining Canvas work in one course to reach a target percent. Pass course_id as the Canvas course ID or as the course name and target_percent as a number from 0 to 100. If Canvas reports a current percent for that course, pass current_percent to use it instead of computing from graded points alone. Example: \"What do I need on the rest of my work in Networking 1 to get an 85 percent?\"",
+    inputSchema: {
+      course_id: courseId,
+      target_percent: z
+        .number()
+        .min(0)
+        .max(100)
+        .describe("Target course percent, from 0 to 100."),
+      current_percent: z
+        .number()
+        .min(0)
+        .max(100)
+        .optional()
+        .describe("Optional, use the percent Canvas reports for the course instead of computing from graded points."),
+    },
+    run: async ({ course_id, target_percent, current_percent }, api) => {
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const courses = await activeCourses(api);
+      const match = pickCourses(courses, course_id);
+      const courseName = "courses" in match && match.courses[0]?.name ? match.courses[0].name : String(course_id);
+      let items: any[] = [];
+      try {
+        items = await api.getAll<any>(`/api/v1/courses/${picked.id}/assignments`, {
+          "include[]": ["submission"],
+          order_by: "due_at",
+          per_page: 100,
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return `Could not get assignments for ${courseName}: ${msg}`;
+      }
+      const points = gradePoints(items);
+      let result;
+      try {
+        result = targetGrade(points, target_percent, current_percent ?? null);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return msg;
+      }
+      if (result.currentPercent == null && result.gradedPoints === 0 && result.remainingPoints === 0) {
+        return `${courseName}: No points posted yet, so there is nothing to compute for a target grade.`;
+      }
+      if (result.gradedPoints === 0 && result.remainingPoints > 0) {
+        const needed = result.neededPercent == null ? "?" : `${result.neededPercent.toFixed(1)}%`;
+        return `${courseName}: Nothing graded yet. To reach ${result.targetPercent}%, you need ${needed} on the work left (${result.remainingPoints} points). Best finish 100%, worst 0%.`;
+      }
+      const current = result.currentPercent == null ? "unknown" : `${result.currentPercent.toFixed(1)}%`;
+      const neededPct = result.neededPercent == null ? "none" : `${result.neededPercent.toFixed(1)}%`;
+      const neededPts = result.neededPoints <= 0 ? `already met (${Math.abs(result.neededPoints).toFixed(1)} points to spare)` : `${result.neededPoints.toFixed(1)} points`;
+      const best = result.bestPercent == null ? "?" : `${result.bestPercent.toFixed(1)}%`;
+      const worst = result.worstPercent == null ? "?" : `${result.worstPercent.toFixed(1)}%`;
+      const status = result.possible
+        ? result.alreadyThere
+          ? "Target already held."
+          : "Target is possible."
+        : "Target is not possible.";
+      return [
+        `${courseName}: current ${current} (${result.earnedPoints.toFixed(1)}/${result.gradedPoints.toFixed(1)} graded, ${result.remainingPoints.toFixed(1)} left)`,
+        `Target ${result.targetPercent}%: need ${neededPts} (${neededPct}) on the work left.`,
+        `${status} Best finish ${best}%, worst ${worst}%.`,
+      ].join("\n");
     },
   },
   {
