@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.6
 
 - Added get_target_grade to compute what score is needed on the remaining Canvas work in one course to reach a target percent. Pass course_id and target_percent, and optionally current_percent to use the percent Canvas reports. The tool uses the tested helper in src/grades.ts, ignores work that does not count toward the course grade, and reports needed points and percent, best and worst finish, and whether the target is held or out of reach. The tool list, docs and metadata were updated to include the new tool. The versions, package name and bin did not change.
 
