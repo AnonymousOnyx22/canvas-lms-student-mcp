@@ -515,7 +515,8 @@ describe("get_assignment_files", () => {
   it("takes an assignment id", async () => {
     const { text } = await call(await connect(), "get_assignment_files", { course_id: 1, assignment: 12 });
     expect(text).toContain("lab4-instructions.pdf");
-    expect(text).toContain("https://school.instructure.com/files/501/download");
+    expect(text).toContain("/courses/1/files/501");
+    expect(text).not.toContain("verifier");
     expect(text).toContain("file 502");
   });
 

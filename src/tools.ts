@@ -456,7 +456,8 @@ export const tools: ToolDef<Api>[] = [
           const f = await api.get<any>(`/api/v1/courses/${picked.id}/files/${id}`);
           const size = typeof f.size === "number" ? `, ${f.size < 1024 ? `${f.size} B` : `${Math.round(f.size / 1024)} KB`}` : "";
           const type = f["content-type"] ? `, ${f["content-type"]}` : "";
-          lines.push(`${f.display_name ?? f.filename ?? `file ${id}`} (file ${id}${type}${size})${f.url ? `\n  ${f.url}` : ""}`);
+          // f.url is a download link with a verifier that opens the file for anyone who has it, so the chat gets the file page, which needs a Canvas login
+          lines.push(`${f.display_name ?? f.filename ?? `file ${id}`} (file ${id}${type}${size})\n  ${api.baseUrl}/courses/${picked.id}/files/${id}`);
         } catch {
           lines.push(`file ${id} could not be read. Canvas may not let you open it.`);
         }
