@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New tool get_submission_feedback shows your score and your instructor's comments on one graded assignment. Pass course_id and the assignment ID or name, like Lab 4.
+
 ## 0.1.7
 
 - Added get_assignment_files. Pass course_id and an assignment ID or name and it lists the files linked in that assignment's instructions, such as a handout or a rubric, with the file name, type, size and a link. It only reads file details and does not download the files. The README and llms.txt now count fourteen read only tools. The existing tools and their parameters did not change.
