@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added get_assignment_files. Pass course_id and an assignment ID or name and it lists the files linked in that assignment's instructions, such as a handout or a rubric, with the file name, type, size and a link. It only reads file details and does not download the files. The README and llms.txt now count fourteen read only tools. The existing tools and their parameters did not change.
+
 ## 0.1.6
 
 - Added get_target_grade to compute what score is needed on the remaining Canvas work in one course to reach a target percent. Pass course_id and target_percent, and optionally current_percent to use the percent Canvas reports. The tool uses the tested helper in src/grades.ts, ignores work that does not count toward the course grade, and reports needed points and percent, best and worst finish, and whether the target is held or out of reach. The tool list, docs and metadata were updated to include the new tool. The versions, package name and bin did not change.

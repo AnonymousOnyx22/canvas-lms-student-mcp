@@ -424,6 +424,47 @@ export const tools: ToolDef<Api>[] = [
     },
   },
   {
+    name: "get_assignment_files",
+    title: "Assignment files",
+    description:
+      "List the files linked in one Canvas assignment's instructions, such as a handout or a rubric, with the file name, type, size and a link. Pass course_id as the Canvas course ID or as the course name and assignment as the assignment ID or its name. It does not download or open the files. Example: \"What files come with the Lab 4 assignment in Networking 1?\"",
+    inputSchema: {
+      course_id: courseId,
+      assignment: z
+        .union([z.string(), z.number()])
+        .describe("The assignment ID or the assignment name, for example Lab 4. Ask get_assignments for the list."),
+    },
+    run: async ({ course_id, assignment }, api) => {
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const items = await api.getAll<any>(`/api/v1/courses/${picked.id}/assignments`, { per_page: 100 });
+      const wanted = String(assignment).trim();
+      const lower = wanted.toLowerCase();
+      const found =
+        items.find((a) => String(a.id) === wanted) ??
+        items.find((a) => String(a.name ?? "").toLowerCase() === lower) ??
+        items.find((a) => String(a.name ?? "").toLowerCase().includes(lower));
+      if (!found) return `No assignment in that course matches "${wanted}". Ask get_assignments for the list.`;
+
+      const ids = [...String(found.description ?? "").matchAll(/\/files\/(\d+)/g)].map((m) => m[1]);
+      const unique = [...new Set(ids)];
+      if (!unique.length) return `${found.name} has no files linked in its instructions.`;
+
+      const lines: string[] = [];
+      for (const id of unique.slice(0, 20)) {
+        try {
+          const f = await api.get<any>(`/api/v1/courses/${picked.id}/files/${id}`);
+          const size = typeof f.size === "number" ? `, ${f.size < 1024 ? `${f.size} B` : `${Math.round(f.size / 1024)} KB`}` : "";
+          const type = f["content-type"] ? `, ${f["content-type"]}` : "";
+          lines.push(`${f.display_name ?? f.filename ?? `file ${id}`} (file ${id}${type}${size})${f.url ? `\n  ${f.url}` : ""}`);
+        } catch {
+          lines.push(`file ${id} could not be read. Canvas may not let you open it.`);
+        }
+      }
+      return `Files linked in ${found.name}\n${bullets(lines, "None.")}`;
+    },
+  },
+  {
     name: "export_due_dates_calendar",
     title: "Export due dates calendar",
     description:

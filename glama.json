@@ -102,6 +102,10 @@
       "description": "Work out what score is needed on the remaining Canvas work in one course to reach a target percent. Pass course_id as the Canvas course ID or as the course name and target_percent as a number from 0 to 100. If Canvas reports a current percent for that course, pass current_percent to use it instead of computing from graded points alone. Example: \"What do I need on the rest of my work in Networking 1 to get an 85 percent?\""
     },
     {
+      "name": "get_assignment_files",
+      "description": "List the files linked in one Canvas assignment's instructions, such as a handout or a rubric, with the file name, type, size and a link. Pass course_id as the Canvas course ID or as the course name and assignment as the assignment ID or its name. It does not download or open the files. Example: \"What files come with the Lab 4 assignment in Networking 1?\""
+    },
+    {
       "name": "export_due_dates_calendar",
       "description": "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id as the Canvas course ID or as the course name for one course. Example: \"Put my Canvas due dates in Google Calendar.\""
     }

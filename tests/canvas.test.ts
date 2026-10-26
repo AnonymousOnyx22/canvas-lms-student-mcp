@@ -58,6 +58,12 @@ beforeAll(async () => {
         { title: "Lab 4", context_name: "Networking 1", start_at: new Date(Date.now() + 86400000).toISOString(), assignment: { due_at: new Date(Date.now() + 86400000).toISOString() } },
       ]);
     if (p === "/api/v1/users/self/missing_submissions") return json([{ name: "Reflection", course_id: 1, due_at: past, course: { name: "Networking 1" } }]);
+    if (p === "/api/v1/courses/1/files/501")
+      return json({ id: 501, display_name: "lab4-instructions.pdf", size: 2048, "content-type": "application/pdf", url: "https://school.instructure.com/files/501/download?verifier=x" });
+    if (p === "/api/v1/courses/1/files/502") {
+      res.writeHead(404);
+      return res.end("{}");
+    }
     if (p === "/api/v1/courses/1/assignments")
       return json([
         {
@@ -73,6 +79,8 @@ beforeAll(async () => {
           name: "Lab 4",
           due_at: future,
           points_possible: 10,
+          description:
+            '<p>Read <a href="https://school.instructure.com/courses/1/files/501/download?wrap=1">the instructions</a> and <a href="/courses/1/files/502?wrap=1">the old rubric</a>. See also <a href="https://example.com/x">a site</a>.</p>',
           html_url: "https://school.instructure.com/courses/1/assignments/12",
           submission: { workflow_state: "unsubmitted" },
         },
@@ -183,7 +191,7 @@ describe("canvas-lms-student-mcp", () => {
   it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(14);
+    expect(tools.length).toBe(15);
     for (const t of tools) {
       if (t.name === "export_due_dates_calendar") {
         expect(t.annotations?.readOnlyHint).toBe(false);
@@ -209,7 +217,7 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(14);
+    expect(listed.length).toBe(15);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
@@ -225,6 +233,7 @@ describe("canvas-lms-student-mcp", () => {
         "get_discussions",
         "get_calendar_events",
         "get_target_grade",
+        "get_assignment_files",
         "export_due_dates_calendar",
       ]
     `);
@@ -486,6 +495,33 @@ describe("course names", () => {
   it("keeps taking a course id", async () => {
     const { text } = await call(await connect(), "get_assignments", { course_id: 1 });
     expect(text).toContain("Lab 3");
+  });
+});
+
+describe("get_assignment_files", () => {
+  it("lists the files linked in an assignment by name", async () => {
+    const { text, isError } = await call(await connect(), "get_assignment_files", {
+      course_id: "Networking 1",
+      assignment: "Lab 4",
+    });
+    expect(isError).toBe(false);
+    expect(text).toContain("lab4-instructions.pdf");
+    expect(text).toContain("application/pdf");
+    expect(text).toContain("2 KB");
+    expect(text).toContain("could not be read");
+    expect(text).not.toContain("example.com");
+  });
+
+  it("takes an assignment id", async () => {
+    const { text } = await call(await connect(), "get_assignment_files", { course_id: 1, assignment: 12 });
+    expect(text).toContain("lab4-instructions.pdf");
+  });
+
+  it("says when the assignment has no files or does not exist", async () => {
+    const none = await call(await connect(), "get_assignment_files", { course_id: 1, assignment: "Lab 3" });
+    expect(none.text).toContain("no files linked");
+    const missing = await call(await connect(), "get_assignment_files", { course_id: 1, assignment: "Nope" });
+    expect(missing.text).toContain("No assignment");
   });
 });
 
