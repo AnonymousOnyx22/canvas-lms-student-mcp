@@ -1,7 +1,7 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "name": "io.github.AnonymousOnyx22/canvas-lms-student-mcp",
-  "description": "Canvas LMS MCP server for students. Gives AI apps like Claude, ChatGPT and Cursor read only access to your Canvas courses: assignments, due dates, missing work, grades, announcements, discussions and course content. It also writes an .ics calendar file of your due dates that you can import into Google Calendar or Apple Calendar.",
+  "description": "Canvas LMS MCP server for students. Gives MCP apps like Claude Desktop, Claude Code and Cursor read only access to your Canvas courses: assignments, assignment files, due dates, missing work, grades, announcements, discussions and course content. It also writes an .ics calendar file of your due dates that you can import into Google Calendar or Apple Calendar.",
   "type": "stdio",
   "version": "0.1.6",
   "license": "MIT",
