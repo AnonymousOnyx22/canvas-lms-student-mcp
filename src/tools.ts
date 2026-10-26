@@ -488,9 +488,9 @@ export const tools: ToolDef<Api>[] = [
          items.find((a) => String(a.name ?? "").toLowerCase().includes(lower));
        if (!found) return `No assignment in that course matches "${wanted}". Ask get_assignments for the list.`;
 
-       const sub = await api.get<any>(`/api/v1/courses/${picked.id}/assignments/${found.id}/submissions/self`);
-       const comments = await api.get<any>(`/api/v1/courses/${picked.id}/assignments/${found.id}/submissions/self/comments`).catch(() => null);
-       const list = Array.isArray(comments) ? comments : (comments?.comments ?? sub?.submission_comments ?? []);
+       // Canvas only sends the comments when asked for them with include[]=submission_comments
+       const sub = await api.get<any>(`/api/v1/courses/${picked.id}/assignments/${found.id}/submissions/self`, { "include[]": ["submission_comments"] });
+       const list: any[] = Array.isArray(sub?.submission_comments) ? sub.submission_comments : [];
 
        const lines: string[] = [];
        if (sub?.score != null || sub?.grade != null) {

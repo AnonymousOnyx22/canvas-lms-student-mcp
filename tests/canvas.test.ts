@@ -58,6 +58,11 @@ beforeAll(async () => {
         { title: "Lab 4", context_name: "Networking 1", start_at: new Date(Date.now() + 86400000).toISOString(), assignment: { due_at: new Date(Date.now() + 86400000).toISOString() } },
       ]);
     if (p === "/api/v1/users/self/missing_submissions") return json([{ name: "Reflection", course_id: 1, due_at: past, course: { name: "Networking 1" } }]);
+    // like real Canvas, the comments only come back when they are asked for
+    if (p === "/api/v1/courses/1/assignments/11/submissions/self") {
+      const withComments = url.searchParams.getAll("include[]").includes("submission_comments");
+      return json({ score: 9, grade: "9", submission_comments: withComments ? [{ author_name: "Dr. Lee", created_at: past, comment: "<p>Good subnetting, check <b>question 4</b>.</p>" }] : undefined });
+    }
     if (p === "/api/v1/courses/1/files/501")
       return json({ id: 501, display_name: "lab4-instructions.pdf", size: 2048, "content-type": "application/pdf", url: "https://school.instructure.com/files/501/download?verifier=x" });
     if (p === "/api/v1/courses/1/files/502") {
@@ -496,6 +501,16 @@ describe("course names", () => {
   it("keeps taking a course id", async () => {
     const { text } = await call(await connect(), "get_assignments", { course_id: 1 });
     expect(text).toContain("Lab 3");
+  });
+});
+
+describe("get_submission_feedback", () => {
+  it("shows the score and the instructor's comments without HTML", async () => {
+    const { text } = await call(await connect(), "get_submission_feedback", { course_id: 1, assignment: "Lab 3" });
+    expect(text).toContain("Score: 9/10");
+    expect(text).toContain("Dr. Lee");
+    expect(text).toContain("Good subnetting, check question 4.");
+    expect(text).not.toContain("<b>");
   });
 });
 
