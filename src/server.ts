@@ -3,7 +3,7 @@ import type { HttpClient } from "./core/http.js";
 import { registerTools } from "./core/tools.js";
 import { tools } from "./tools.js";
 
-export const VERSION = "0.1.6";
+export const VERSION = "0.1.7";
 
 export function createServer(api: HttpClient): McpServer {
   const server = new McpServer({ name: "canvas-lms-student-mcp", version: VERSION });
