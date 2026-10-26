@@ -464,10 +464,51 @@ export const tools: ToolDef<Api>[] = [
       }
       return `Files linked in ${found.name}\n${bullets(lines, "None.")}`;
     },
-  },
-  {
-    name: "export_due_dates_calendar",
-    title: "Export due dates calendar",
+},
+   {
+     name: "get_submission_feedback",
+     title: "Submission feedback",
+     description:
+       "The instructor's comments on your graded submission for one Canvas assignment, with the score and grade. Pass course_id as the Canvas course ID or as the course name and assignment as the assignment ID or its name. Example: \"What did the teacher say about my Lab 4 submission in Networking 1?\"",
+     inputSchema: {
+       course_id: courseId,
+       assignment: z
+         .union([z.string(), z.number()])
+         .describe("The assignment ID or the assignment name, for example Lab 4. Ask get_assignments for the list."),
+     },
+     run: async ({ course_id, assignment }, api) => {
+       const picked = await pickCourseId(api, course_id);
+       if ("message" in picked) return picked.message;
+       const items = await api.getAll<any>(`/api/v1/courses/${picked.id}/assignments`, { per_page: 100 });
+       const wanted = String(assignment).trim();
+       const lower = wanted.toLowerCase();
+       const found =
+         items.find((a) => String(a.id) === wanted) ??
+         items.find((a) => String(a.name ?? "").toLowerCase() === lower) ??
+         items.find((a) => String(a.name ?? "").toLowerCase().includes(lower));
+       if (!found) return `No assignment in that course matches "${wanted}". Ask get_assignments for the list.`;
+
+       const sub = await api.get<any>(`/api/v1/courses/${picked.id}/assignments/${found.id}/submissions/self`);
+       const comments = await api.get<any>(`/api/v1/courses/${picked.id}/assignments/${found.id}/submissions/self/comments`).catch(() => null);
+       const list = Array.isArray(comments) ? comments : (comments?.comments ?? sub?.submission_comments ?? []);
+
+       const lines: string[] = [];
+       if (sub?.score != null || sub?.grade != null) {
+         lines.push(`Score: ${sub.score ?? "?"}${found.points_possible != null ? `/${found.points_possible}` : ""}${sub.grade != null ? ` (${sub.grade})` : ""}`);
+       }
+       if (!list.length) lines.push("No instructor comments.");
+       for (const c of list) {
+         const who = c.author_name ?? c.author?.name ?? "Instructor";
+         const when = c.created_at ? ` (${c.created_at})` : "";
+         const body = c.comment ? stripHtml(c.comment) : "";
+         lines.push(`${who}${when}: ${body}`);
+       }
+       return [`Feedback for ${found.name}`, ...lines].join("\n");
+     },
+   },
+    {
+     name: "export_due_dates_calendar",
+     title: "Export due dates calendar",
     description:
       "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id as the Canvas course ID or as the course name for one course. Example: \"Put my Canvas due dates in Google Calendar.\"",
     inputSchema: {

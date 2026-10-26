@@ -9,7 +9,7 @@ Version: 0.1.7
 - Create a token in Canvas under Account, Settings, New Access Token.
 - Run with npx -y canvas-lms-student-mcp. Run `npx canvas-lms-student-mcp doctor` to check the setup.
 
-## Tools (fourteen read only, one writes a calendar file)
+## Tools (fifteen read only, one writes a calendar file)
 - get_my_courses: List your active Canvas courses with their Canvas course IDs. Use a course ID or a course name in the other tools. Example: "What are my Canvas courses this term?"
 - get_todo: Your Canvas to-do list: assignments and discussions Canvas says still need attention, with due dates. Example: "What does Canvas say I still need to do?"
 - get_upcoming_due_dates: Upcoming assignments and events across every Canvas course, soonest first. Example: "What is due in Canvas this week?"
@@ -24,6 +24,7 @@ Version: 0.1.7
 - get_calendar_events: Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Example: "What is on my Canvas calendar between 2026-10-01 and 2026-10-31?"
 - get_target_grade: Work out what score is needed on the remaining Canvas work in one course to reach a target percent. Pass course_id as the Canvas course ID or as the course name and target_percent as a number from 0 to 100. If Canvas reports a current percent for that course, pass current_percent to use it instead of computing from graded points alone. Example: "What do I need on the rest of my work in Networking 1 to get an 85 percent?"
 - get_assignment_files: List the files linked in one Canvas assignment's instructions, such as a handout or a rubric, with the file name, type, size and a link. Pass course_id as the Canvas course ID or as the course name and assignment as the assignment ID or its name. It does not download or open the files. Example: "What files come with the Lab 4 assignment in Networking 1?"
+- get_submission_feedback: The instructor's comments on your graded submission for one Canvas assignment, with the score and grade. Pass course_id as the Canvas course ID or as the course name and assignment as the assignment ID or its name. Example: "What did the teacher say about my Lab 4 submission in Networking 1?"
 - export_due_dates_calendar: Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id as the Canvas course ID or as the course name for one course. Example: "Put my Canvas due dates in Google Calendar."
 
 get_assignments takes an optional bucket filter, for example overdue. get_announcements takes optional course_ids. get_whats_new takes an optional since_days. get_calendar_events takes optional start_date and end_date as YYYY-MM-DD. get_target_grade takes optional current_percent. export_due_dates_calendar takes optional days_ahead, course_id, include_submitted, path and filename.

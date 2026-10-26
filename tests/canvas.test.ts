@@ -191,7 +191,7 @@ describe("canvas-lms-student-mcp", () => {
   it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(15);
+    expect(tools.length).toBe(16);
     for (const t of tools) {
       if (t.name === "export_due_dates_calendar") {
         expect(t.annotations?.readOnlyHint).toBe(false);
@@ -217,7 +217,7 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(15);
+    expect(listed.length).toBe(16);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
@@ -234,6 +234,7 @@ describe("canvas-lms-student-mcp", () => {
         "get_calendar_events",
         "get_target_grade",
         "get_assignment_files",
+        "get_submission_feedback",
         "export_due_dates_calendar",
       ]
     `);
