@@ -120,6 +120,8 @@ The npm package ships two registry files: `server.json` for the Model Context Pr
 
 If your school runs Canvas, use this server. If it runs Brightspace, use brightspace-mcp-server. The two cover the same ground for their own LMS.
 
+Canvas (Instructure) and Brightspace (D2L) are separate products, so a server for one cannot sign in to the other or read its courses. Canvas MCP reads only Canvas, using a token from your own Canvas account. brightspace-mcp-server reads only Brightspace, using your school login. Neither tool moves work or grades between the two, and neither one changes anything in the LMS.
+
 | | Canvas MCP | brightspace-mcp-server |
 | --- | --- | --- |
 | LMS | Canvas (Instructure) | Brightspace (D2L) |
@@ -128,6 +130,27 @@ If your school runs Canvas, use this server. If it runs Brightspace, use brights
 | npx one liner | Yes | Yes |
 
 Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.
+
+Here is what the 16 tools cover on Canvas, so you can check that your question has a tool before you install it.
+
+| Canvas feature | Tool | What you get |
+| --- | --- | --- |
+| Your courses | `get_my_courses` | Active courses with their course code and Canvas course ID |
+| To do list | `get_todo` | Assignments and discussions Canvas still lists as to do, with due dates |
+| Upcoming work | `get_upcoming_due_dates` | Assignments and events across all courses, soonest first, with an optional `days_ahead` window |
+| Missing work | `get_missing_assignments` | Past due assignments you have not submitted, with the course and the day each was due |
+| Assignments | `get_assignments` | Due dates, points and submission status for one course, with an optional `bucket` filter |
+| Grades | `get_my_grades` | Current percent and letter grade for each course, plus the scored work behind it |
+| Modules | `get_course_content` | Modules and their items for one course |
+| Syllabus | `get_syllabus` | Syllabus text with the HTML removed |
+| Announcements | `get_announcements` | Recent announcements for all courses or the ones you name |
+| What changed | `get_whats_new` | Announcements, newly graded work and unread discussion replies in one window |
+| Discussions | `get_discussions` | Discussion topics for one course, with unread counts |
+| Calendar | `get_calendar_events` | Canvas events and assignment due dates between two dates |
+| Target grade | `get_target_grade` | The score needed on remaining work to reach a target percent, with the best and worst finish |
+| Assignment files | `get_assignment_files` | Files linked in one assignment's instructions, with type, size and a Canvas link. It does not download them. |
+| Submission feedback | `get_submission_feedback` | Your score and the instructor's comments on one graded submission |
+| Calendar export | `export_due_dates_calendar` | An .ics file of due dates and events, or the text to save yourself. It writes the file on your computer. |
 
 ## More free student MCP servers
 
