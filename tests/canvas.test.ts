@@ -321,6 +321,16 @@ describe("canvas-lms-student-mcp", () => {
     expect((await call(c, "get_missing_assignments")).text).toContain("Reflection");
   });
 
+  it("limits get_upcoming_due_dates to the next few days when days_ahead is passed", async () => {
+    const c = await connect();
+    const one = (await call(c, "get_upcoming_due_dates", { days_ahead: 1 })).text;
+    expect(one).toContain("Lab 4");
+    expect(one).not.toContain("Quiz 2");
+    const all = (await call(c, "get_upcoming_due_dates")).text;
+    expect(all).toContain("Lab 4");
+    expect(all).toContain("Quiz 2");
+  });
+
   it("labels submission status per assignment", async () => {
     const { text } = await call(await connect(), "get_assignments", { course_id: 1 });
     expect(text).toContain("Lab 3");

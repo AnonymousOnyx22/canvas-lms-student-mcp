@@ -59,7 +59,7 @@
     },
     {
       "name": "get_upcoming_due_dates",
-      "description": "Upcoming assignments and events across every Canvas course, soonest first. Example: \"What is due in Canvas this week?\""
+      "description": "Upcoming assignments and events across every Canvas course, soonest first. Pass days_ahead to look only that many days ahead, for example 3. Leave it out and every upcoming due date Canvas returns is included. Example: \"What is due in the next 3 days?\""
     },
     {
       "name": "get_missing_assignments",

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- get_upcoming_due_dates takes an optional days_ahead parameter, so a question such as "what is due in the next 3 days" can be answered with only that window. Leave the parameter out and the tool returns every upcoming due date Canvas lists, as before. The tool name and the existing output did not change.
+
 - get_announcements and get_whats_new take optional limit and page parameters to step through long lists, 20 items per list by default. Existing output and parameters did not change.
 
 - New tool get_submission_feedback shows your score and your instructor's comments on one graded assignment. Pass course_id and the assignment ID or name, like Lab 4.

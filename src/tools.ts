@@ -95,17 +95,34 @@ export const tools: ToolDef<Api>[] = [
     name: "get_upcoming_due_dates",
     title: "Upcoming due dates",
     description:
-      "Upcoming assignments and events across every Canvas course, soonest first. Example: \"What is due in Canvas this week?\"",
-    inputSchema: {},
-    run: async (_args, api) => {
+      "Upcoming assignments and events across every Canvas course, soonest first. Pass days_ahead to look only that many days ahead, for example 3. Leave it out and every upcoming due date Canvas returns is included. Example: \"What is due in the next 3 days?\"",
+    inputSchema: {
+      days_ahead: z
+        .number()
+        .int()
+        .min(1)
+        .max(120)
+        .optional()
+        .describe("Optional, how many days ahead to include. Leave it out to include every upcoming due date Canvas returns."),
+    },
+    run: async ({ days_ahead }, api) => {
       const items = await api.getAll<any>("/api/v1/users/self/upcoming_events", { per_page: 50 });
+      const now = Date.now();
+      const until = days_ahead == null ? null : now + days_ahead * 86400000;
       const rows = items
         .map((e) => ({
           when: e.assignment?.due_at ?? e.start_at ?? null,
           text: `${e.title ?? e.assignment?.name ?? "Untitled"} (${e.context_name ?? "course"}) due ${fmtDate(e.assignment?.due_at ?? e.start_at)}`,
         }))
+        .filter((r) => {
+          if (until == null) return true;
+          if (!r.when) return false;
+          const time = Date.parse(r.when);
+          return !Number.isNaN(time) && time >= now && time <= until;
+        })
         .sort((a, b) => (a.when ?? "9").localeCompare(b.when ?? "9"));
-      return bullets(rows.map((r) => r.text), "No upcoming due dates.");
+      const window = days_ahead == null ? "" : ` in the next ${days_ahead} ${days_ahead === 1 ? "day" : "days"}`;
+      return bullets(rows.map((r) => r.text), `No upcoming due dates${window}.`);
     },
   },
   {

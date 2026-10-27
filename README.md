@@ -63,7 +63,7 @@ Where a tool works on one course, you can name the course instead of looking up 
 | --- | --- | --- |
 | `get_my_courses` | Your active courses and their IDs | "What are my Canvas courses this term?" |
 | `get_todo` | Your Canvas to-do list | "What does Canvas say I still need to do?" |
-| `get_upcoming_due_dates` | Upcoming assignments and events, soonest first | "What is due in Canvas this week?" |
+| `get_upcoming_due_dates` | Upcoming assignments and events, soonest first, with an optional days_ahead window | "What is due in the next 3 days?" |
 | `get_missing_assignments` | Past due work you haven't submitted | "What am I missing in Canvas?" |
 | `get_assignments` | Assignments for a course by ID or name, with due dates and submission status | "Which Canvas assignments in Networking 1 are overdue?" |
 | `get_my_grades` | Current grade for each course, plus the assignment scores and submission status behind it | "What is my grade in each Canvas course and which assignments make it up?" |
