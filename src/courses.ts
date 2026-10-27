@@ -118,13 +118,40 @@ export type CourseIdPick = { id: number } | { message: string };
  * Turn what a person said into a Canvas course id. A plain number is used as it is.
  * A name is looked up in the active courses, the list get_my_courses shows.
  */
+function editDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
+function closestCourseNames(courses: Course[], value: string | number, limit = 3): string[] {
+  const text = searchWords(String(value));
+  return courses
+    .map((c) => ({ course: c, distance: editDistance(text, courseWords(c.name ?? "")) }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit)
+    .map((x) => `${x.course.name} (id ${x.course.id})`);
+}
+
 export async function pickCourseId(api: HttpClient, value: string | number): Promise<CourseIdPick> {
   if (isCourseId(value)) return { id: Number(String(value).trim()) };
   const courses = await activeCourses(api);
   const match = matchCourse(courses, value);
   if (match.kind === "course") return { id: match.course.id };
   if (match.kind === "several") return { message: severalCoursesMessage(value, match.courses) };
-  return { message: noCourseMessage(value) };
+  const suggestions = closestCourseNames(courses, value);
+  const suggestionText = suggestions.length ? ` Closest matches: ${suggestions.join(", ")}.` : "";
+  return { message: `${noCourseMessage(value)}${suggestionText}` };
 }
 
 /** Several Canvas course ids, or a message that says why there are none. */
