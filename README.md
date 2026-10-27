@@ -120,7 +120,7 @@ The npm package ships two registry files: `server.json` for the Model Context Pr
 
 If your school runs Canvas, use this server. If it runs Brightspace, use brightspace-mcp-server. The two cover the same ground for their own LMS.
 
-Canvas (Instructure) and Brightspace (D2L) are separate products, so a server for one cannot sign in to the other or read its courses. Canvas MCP reads only Canvas, using a token from your own Canvas account. brightspace-mcp-server reads only Brightspace, using your school login. Neither tool moves work or grades between the two, and neither one changes anything in the LMS.
+Canvas (Instructure) and Brightspace (D2L) are separate products, so a server for one cannot sign in to the other or read its courses. Canvas MCP reads only Canvas, using a token from your own Canvas account. [Brightspace MCP](https://github.com/AnonymousOnyx22/brightspace-d2l-mcp) (`brightspace-d2l-mcp` on npm) reads only Brightspace, using your school login. Neither tool moves work or grades between the two, and neither one changes anything in the LMS.
 
 | | Canvas MCP | brightspace-mcp-server |
 | --- | --- | --- |
