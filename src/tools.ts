@@ -14,10 +14,28 @@ const courseId = z
   );
 
 /** Keep a section readable: at most 20 lines, then a note about the rest. */
-function cap(lines: string[]): string[] {
-  if (lines.length <= 20) return lines;
-  return [...lines.slice(0, 20), `and ${lines.length - 20} more`];
+// One page of lines, with a note when more follow.
+function pageLines(lines: string[], limit = 20, page = 1): string[] {
+  const start = (page - 1) * limit;
+  const rest = lines.length - (start + limit);
+  const out = lines.slice(start, start + limit);
+  if (!out.length && lines.length) return [`No items on page ${page}, there are only ${lines.length}.`];
+  return rest > 0 ? [...out, `and ${rest} more`] : out;
 }
+
+const limitParam = z
+  .number()
+  .int()
+  .min(1)
+  .max(100)
+  .optional()
+  .describe("Optional, how many items to show per list. Defaults to 20.");
+const pageParam = z
+  .number()
+  .int()
+  .min(1)
+  .optional()
+  .describe("Optional, which page of items to show, starting at 1. Defaults to 1.");
 
 function submissionLine(a: any): string {
   const s = a.submission;
@@ -216,9 +234,9 @@ export const tools: ToolDef<Api>[] = [
     name: "get_announcements",
     title: "Announcements",
     description:
-      "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Each course id can be the Canvas course ID or the course name. Example: \"What did my instructors announce in Canvas lately?\"",
-    inputSchema: { course_ids: z.array(courseId).optional() },
-    run: async ({ course_ids }, api) => {
+      "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Each course id can be the Canvas course ID or the course name. Pass limit to show fewer or more than 20 announcements, and page to see the next ones. Example: \"What did my instructors announce in Canvas lately?\"",
+    inputSchema: { course_ids: z.array(courseId).optional(), limit: limitParam, page: pageParam },
+    run: async ({ course_ids, limit, page }, api) => {
       let ids: number[];
       if (course_ids?.length) {
         const picked = await pickCourseIds(api, course_ids);
@@ -234,7 +252,11 @@ export const tools: ToolDef<Api>[] = [
         per_page: 20,
       });
       return bullets(
-        items.slice(0, 20).map((a) => `${a.title} (${fmtDate(a.posted_at)})\n  ${stripHtml(a.message, 400).replace(/\n/g, " ")}`),
+        pageLines(
+          items.map((a) => `${a.title} (${fmtDate(a.posted_at)})\n  ${stripHtml(a.message, 400).replace(/\n/g, " ")}`),
+          limit,
+          page,
+        ),
         "No recent announcements.",
       );
     },
@@ -243,7 +265,7 @@ export const tools: ToolDef<Api>[] = [
     name: "get_whats_new",
     title: "What's new",
     description:
-      "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id as the Canvas course ID or as the course name to check one course. Example: \"What's new in Canvas since last week?\"",
+      "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id as the Canvas course ID or as the course name to check one course. Pass limit and page to step through long lists, 20 items per section by default. Example: \"What's new in Canvas since last week?\"",
     inputSchema: {
       since_days: z
         .number()
@@ -253,8 +275,10 @@ export const tools: ToolDef<Api>[] = [
         .optional()
         .describe("How many days back to look for new announcements and newly graded work. Defaults to 7."),
       course_id: courseId.optional().describe("Optional, check one Canvas course only."),
+      limit: limitParam,
+      page: pageParam,
     },
-    run: async ({ since_days, course_id }, api) => {
+    run: async ({ since_days, course_id, limit, page }, api) => {
       const days = since_days ?? 7;
       const cutoff = Date.now() - days * 86400000;
       const span = days === 1 ? "1 day" : `${days} days`;
@@ -316,9 +340,9 @@ export const tools: ToolDef<Api>[] = [
         return `Nothing new in Canvas: no announcements or newly graded work in the last ${span}, and no unread discussion replies.`;
       }
       return [
-        `New announcements (last ${span})\n${bullets(cap(annLines), "None.")}`,
-        `Newly graded (last ${span})\n${bullets(cap(gradeLines), "None.")}`,
-        `Unread discussion replies\n${bullets(cap(discLines), "None.")}`,
+        `New announcements (last ${span})\n${bullets(pageLines(annLines, limit, page), "None.")}`,
+        `Newly graded (last ${span})\n${bullets(pageLines(gradeLines, limit, page), "None.")}`,
+        `Unread discussion replies\n${bullets(pageLines(discLines, limit, page), "None.")}`,
       ].join("\n\n");
     },
   },

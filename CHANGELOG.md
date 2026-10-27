@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- get_announcements and get_whats_new take optional limit and page parameters to step through long lists, 20 items per list by default. Existing output and parameters did not change.
+
 - New tool get_submission_feedback shows your score and your instructor's comments on one graded assignment. Pass course_id and the assignment ID or name, like Lab 4.
 
 ## 0.1.7

@@ -83,11 +83,11 @@
     },
     {
       "name": "get_announcements",
-      "description": "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Each course id can be the Canvas course ID or the course name. Example: \"What did my instructors announce in Canvas lately?\""
+      "description": "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Each course id can be the Canvas course ID or the course name. Pass limit to show fewer or more than 20 announcements, and page to see the next ones. Example: \"What did my instructors announce in Canvas lately?\""
     },
     {
       "name": "get_whats_new",
-      "description": "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id as the Canvas course ID or as the course name to check one course. Example: \"What's new in Canvas since last week?\""
+      "description": "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id as the Canvas course ID or as the course name to check one course. Pass limit and page to step through long lists, 20 items per section by default. Example: \"What's new in Canvas since last week?\""
     },
     {
       "name": "get_discussions",

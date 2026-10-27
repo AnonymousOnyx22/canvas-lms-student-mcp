@@ -364,6 +364,20 @@ describe("canvas-lms-student-mcp", () => {
     expect(short).not.toContain("Essay 1");
   });
 
+  it("pages get_announcements and get_whats_new with limit and page", async () => {
+    const c = await connect();
+    expect((await call(c, "get_announcements", { limit: 1 })).text).toContain("Midterm moved");
+    expect((await call(c, "get_announcements", { limit: 1, page: 2 })).text).toContain("No items on page 2");
+    const p1 = (await call(c, "get_whats_new", { limit: 1 })).text;
+    expect(p1).toMatch(/and 1 more/);
+    expect(p1).toContain("Midterm moved");
+    const p2 = (await call(c, "get_whats_new", { limit: 1, page: 2 })).text;
+    expect(p2).not.toContain("Midterm moved");
+    expect(p2).not.toMatch(/and \d+ more/);
+    expect(p1.match(/(Lab 3|Essay 1)/g)).toHaveLength(1);
+    expect(p2.match(/(Lab 3|Essay 1)/g)).toHaveLength(1);
+  });
+
   it("says nothing is new when the window excludes everything", async () => {
     const { text, isError } = await call(await connect(), "get_whats_new", { since_days: 1, course_id: 3 });
     expect(isError).toBe(false);
