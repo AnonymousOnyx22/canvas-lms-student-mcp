@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.8
 
 - get_upcoming_due_dates takes an optional days_ahead parameter, so a question such as "what is due in the next 3 days" can be answered with only that window. Leave the parameter out and the tool returns every upcoming due date Canvas lists, as before. The tool name and the existing output did not change.
 

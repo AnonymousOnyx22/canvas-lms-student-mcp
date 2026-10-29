@@ -3,7 +3,7 @@
   "name": "io.github.AnonymousOnyx22/canvas-lms-student-mcp",
   "description": "Canvas LMS MCP server for students. Gives MCP apps like Claude Desktop, Claude Code and Cursor read only access to your Canvas courses: assignments, assignment files, due dates, missing work, grades, announcements, discussions and course content. It also writes an .ics calendar file of your due dates that you can import into Google Calendar or Apple Calendar.",
   "type": "stdio",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "MIT",
   "homepage": "https://brightspacemcp.com",
   "repository": {
