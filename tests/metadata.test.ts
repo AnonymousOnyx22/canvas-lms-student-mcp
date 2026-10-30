@@ -167,21 +167,25 @@ describe("registry metadata", () => {
     for (const file of [server, glama]) {
       expect(file.repository.url).toBe(REPO_URL);
       expect(file.repository.source).toBe("github");
-      expect(file.homepage).toBe(pkg.homepage);
     }
+    expect(glama.homepage).toBe(pkg.homepage);
     expect(server.websiteUrl).toBe(pkg.homepage);
   });
 
-  it("carries the MIT license in both registry files", () => {
+  it("carries the MIT license in package.json and glama.json", () => {
     expect(pkg.license).toBe("MIT");
-    expect(server.license).toBe(pkg.license);
     expect(glama.license).toBe(pkg.license);
   });
 
-  it("lists keywords in both registry files that npm also lists", () => {
+  it("keeps server.json to the fields the official registry schema allows", () => {
+    const allowed = ["$schema", "_meta", "description", "icons", "name", "packages", "remotes", "repository", "title", "version", "websiteUrl"];
+    for (const key of Object.keys(server)) expect(allowed, `server.json field ${key}`).toContain(key);
+  });
+
+  it("lists keywords in glama.json that npm also lists", () => {
     const pkgKeywords = pkg.keywords.map((k: string) => k.toLowerCase());
 
-    for (const file of [server, glama]) {
+    for (const file of [glama]) {
       expect(Array.isArray(file.keywords)).toBe(true);
       expect(file.keywords.length).toBeGreaterThan(0);
       expect(file.keywords.map((k: string) => k.toLowerCase())).toContain(PHRASE);
