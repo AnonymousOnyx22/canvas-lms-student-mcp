@@ -46,13 +46,13 @@
     "university",
     "school"
   ],
-  "version": "0.1.8",
+  "version": "0.1.9",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "canvas-lms-student-mcp",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "runtimeHint": "npx",
       "runtimeArguments": [
         {

@@ -2,7 +2,7 @@
 
 > Canvas LMS MCP is a free, open source, read only MCP server that lets AI apps (Claude, ChatGPT, Cursor, Copilot and others) read a student's Canvas LMS by Instructure courses, due dates, grades and announcements. It cannot submit, edit or delete anything. It can save your due dates as an .ics calendar file on your own computer.
 
-Version: 0.1.8
+Version: 0.1.9
 
 ## Setup
 - Needs CANVAS_BASE_URL and CANVAS_API_TOKEN.
