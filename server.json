@@ -9,13 +9,13 @@
     "source": "github",
     "id": "1419670110"
   },
-  "version": "0.1.9",
+  "version": "0.1.10",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "canvas-lms-student-mcp",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "runtimeHint": "npx",
       "runtimeArguments": [
         {
