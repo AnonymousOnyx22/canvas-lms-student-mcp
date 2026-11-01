@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- New tool get_course_modules shows your progress through the modules of a Canvas course. Each module lists its state, and each item shows what Canvas requires of you (view, submit, contribute or a minimum score) and whether you have done it. Set only_open to true to hide completed modules.
+
 - New tool get_inbox lists your unread Canvas inbox conversations, newest first, with who they are with, the date and a short preview. It only reads and does not mark anything as read. Set unread_only to false to include read ones, and use limit and page for long lists.
 
 - New tool get_course_people lists the teachers and teaching assistants of a Canvas course with their role and email address. Set role to teacher or ta to show one kind. Canvas hides some email addresses from students, and those people are listed without one.

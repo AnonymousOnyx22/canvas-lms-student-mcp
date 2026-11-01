@@ -153,6 +153,11 @@ beforeAll(async () => {
     if (p === "/api/v1/courses/3/assignments") return json([]);
     if (p === "/api/v1/courses/4/assignments") return json([]);
     if (p === "/api/v1/courses/1/modules") return json([{ name: "Week 1", items: [{ title: "Intro video", type: "ExternalUrl" }] }]);
+    if (p === "/api/v1/courses/2/modules")
+      return json([
+        { name: "Week 1", state: "completed", items: [{ title: "Intro", type: "Page", completion_requirement: { type: "must_view", completed: true } }] },
+        { name: "Week 2", state: "started", items: [{ title: "Lab 2", type: "Assignment", completion_requirement: { type: "min_score", min_score: 8, completed: false } }, { title: "Notes", type: "File" }] },
+      ]);
     if (p === "/api/v1/courses/3/modules") return json([{ name: "Old term", items: [{ title: "Archive notes", type: "File" }] }]);
     if (p === "/api/v1/courses/1") return json({ syllabus_body: "<p>Welcome &amp; hello</p><script>x()</script><p>Grading</p>" });
     if (p === "/api/v1/announcements") {
@@ -227,7 +232,7 @@ describe("canvas-lms-student-mcp", () => {
   it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(20);
+    expect(tools.length).toBe(21);
     for (const t of tools) {
       if (t.name === "export_due_dates_calendar") {
         expect(t.annotations?.readOnlyHint).toBe(false);
@@ -253,7 +258,7 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(20);
+    expect(listed.length).toBe(21);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
@@ -264,6 +269,7 @@ describe("canvas-lms-student-mcp", () => {
         "get_assignments",
         "get_my_grades",
         "get_course_content",
+        "get_course_modules",
         "get_syllabus",
         "get_course_people",
         "get_announcements",
@@ -617,6 +623,20 @@ describe("get_course_people", () => {
     const teachers = (await call(c, "get_course_people", { course_id: "Networking 1", role: "teacher" })).text;
     expect(teachers).toContain("Dana Teacher");
     expect(teachers).not.toContain("Sam");
+  });
+});
+
+describe("get_course_modules", () => {
+  it("shows module state and item completion, and hides completed modules on request", async () => {
+    const c = await connect();
+    const all = (await call(c, "get_course_modules", { course_id: "2" })).text;
+    expect(all).toContain("Week 1 [completed]");
+    expect(all).toContain("Intro (Page) needs: view, done");
+    expect(all).toContain("Lab 2 (Assignment) needs: score at least 8, not done");
+    expect(all).toContain("Notes (File)");
+    const open = (await call(c, "get_course_modules", { course_id: "2", only_open: true })).text;
+    expect(open).not.toContain("Week 1");
+    expect(open).toContain("Week 2 [started]");
   });
 });
 

@@ -55,7 +55,7 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 
 ## Tools
 
-All 20 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
+All 21 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
 
 Where a tool works on one course, you can name the course instead of looking up its number. Give the Canvas course ID or the course name, for example "Networking 1", and the name is matched against the list `get_my_courses` shows. A name that fits no course says so and points back at `get_my_courses`.
 
@@ -69,6 +69,7 @@ Where a tool works on one course, you can name the course instead of looking up 
 | `get_assignments` | Assignments for a course by ID or name, with due dates and submission status | "Which Canvas assignments in Networking 1 are overdue?" |
 | `get_my_grades` | Current grade for each course, plus the assignment scores and submission status behind it | "What is my grade in each Canvas course and which assignments make it up?" |
 | `get_course_content` | Modules and items for a course by ID or name | "Show me the Week 3 module in my Canvas Networking course." |
+| `get_course_modules` | Module progress for a course: each module's state and what each item needs from you, done or not | "Which modules do I still have to finish in my Canvas Networking course?" |
 | `get_syllabus` | A course's syllabus text, by ID or name | "What does the Canvas syllabus say about grading in Scripting?" |
 | `get_course_people` | Teachers and TAs of a course by ID or name, with role and email, and an optional role filter | "Who teaches my Canvas Networking course and how do I email them?" |
 | `get_announcements` | Recent announcements, for the courses you name or for all of them | "What did my instructors announce in Canvas lately?" |
@@ -92,7 +93,7 @@ The file holds the next 30 days and only the work you still owe. Use `days_ahead
 
 - Your token stays on your computer. It is only sent to your own school's Canvas address.
 - Nothing is sent to any other server by this project.
-- Nineteen tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
+- Twenty tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
 - Revoke the token any time in Canvas settings.
 
 ## Troubleshooting
@@ -135,7 +136,7 @@ Canvas (Instructure) and Brightspace (D2L) are separate products, so a server fo
 
 Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.
 
-Here is what the 20 tools cover on Canvas, so you can check that your question has a tool before you install it.
+Here is what the 21 tools cover on Canvas, so you can check that your question has a tool before you install it.
 
 | Canvas feature | Tool | What you get |
 | --- | --- | --- |
@@ -146,6 +147,7 @@ Here is what the 20 tools cover on Canvas, so you can check that your question h
 | Assignments | `get_assignments` | Due dates, points and submission status for one course, with an optional `bucket` filter |
 | Grades | `get_my_grades` | Current percent and letter grade for each course, plus the scored work behind it |
 | Modules | `get_course_content` | Modules and their items for one course |
+| Module progress | `get_course_modules` | Module state, and for each item what Canvas requires and whether you have done it, with `only_open` |
 | Syllabus | `get_syllabus` | Syllabus text with the HTML removed |
 | Instructors and TAs | `get_course_people` | Teachers and teaching assistants for one course with their email when Canvas shows it, filtered by `role` |
 | Announcements | `get_announcements` | Recent announcements for all courses or the ones you name |

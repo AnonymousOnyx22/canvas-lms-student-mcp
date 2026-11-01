@@ -85,6 +85,10 @@
       "description": "Modules and module items for one Canvas course. Pass course_id as the Canvas course ID or as the course name. Example: \"Show me the Week 3 module in my Canvas Networking course.\""
     },
     {
+      "name": "get_course_modules",
+      "description": "Your progress through the modules of one Canvas course. Each module shows its state (locked, unlocked, started or completed) and each item shows what Canvas requires of you (view it, submit it, contribute or reach a minimum score) and whether you have done it, so you can see what to study next. Pass course_id as the Canvas course ID or as the course name. Set only_open to true to hide completed modules. Example: \"Which modules do I still have to finish in my Canvas Networking course?\""
+    },
+    {
       "name": "get_syllabus",
       "description": "The syllabus text for one Canvas course, with HTML removed. Pass course_id as the Canvas course ID or as the course name. Example: \"What does the Canvas syllabus say about grading in Scripting?\""
     },

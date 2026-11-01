@@ -297,6 +297,37 @@ export const tools: ToolDef<Api>[] = [
     },
   },
   {
+    name: "get_course_modules",
+    title: "Module progress",
+    description:
+      "Your progress through the modules of one Canvas course. Each module shows its state (locked, unlocked, started or completed) and each item shows what Canvas requires of you (view it, submit it, contribute or reach a minimum score) and whether you have done it, so you can see what to study next. Pass course_id as the Canvas course ID or as the course name. Set only_open to true to hide completed modules. Example: \"Which modules do I still have to finish in my Canvas Networking course?\"",
+    inputSchema: {
+      course_id: courseId,
+      only_open: z.boolean().optional().describe("Optional, hide modules that are already completed. Defaults to false."),
+    },
+    run: async ({ course_id, only_open }, api) => {
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const modules = await api.getAll<any>(`/api/v1/courses/${picked.id}/modules`, { "include[]": ["items"], per_page: 50 });
+      if (!modules.length) return "This course has no modules.";
+      const shown = only_open ? modules.filter((m) => m.state !== "completed") : modules;
+      if (!shown.length) return "Every module in this course is completed.";
+      return shown
+        .map((m) => {
+          const items = (m.items ?? []).slice(0, 40).map((i: any) => {
+            const r = i.completion_requirement;
+            if (!r) return `  - ${i.title} (${i.type})`;
+            const need =
+              r.type === "min_score" ? `score at least ${r.min_score}` : r.type === "must_submit" ? "submit" : r.type === "must_contribute" ? "contribute" : "view";
+            return `  - ${i.title} (${i.type}) needs: ${need}, ${r.completed ? "done" : "not done"}`;
+          });
+          const head = `${m.name} [${m.state ?? "unknown"}]${m.unlock_at ? ` (opens ${fmtDate(m.unlock_at)})` : ""}`;
+          return `${head}\n${items.join("\n") || "  (empty)"}`;
+        })
+        .join("\n\n");
+    },
+  },
+  {
     name: "get_syllabus",
     title: "Syllabus",
     description:
