@@ -310,6 +310,36 @@ export const tools: ToolDef<Api>[] = [
     },
   },
   {
+    name: "get_course_people",
+    title: "Instructors and TAs",
+    description:
+      "The teachers and teaching assistants of one Canvas course, with their role and email address when Canvas shows it. Pass course_id as the Canvas course ID or as the course name. Set role to teacher or ta to show only one kind, or leave it out for both. Canvas hides some email addresses from students, and those people are listed without one. Example: \"Who teaches my Canvas Networking course and how do I email them?\"",
+    inputSchema: {
+      course_id: courseId,
+      role: z.enum(["teacher", "ta", "all"]).optional().describe("teacher, ta or all. Defaults to all."),
+    },
+    run: async ({ course_id, role }, api) => {
+      const picked = await pickCourseId(api, course_id);
+      if ("message" in picked) return picked.message;
+      const kinds = role === "teacher" ? ["teacher"] : role === "ta" ? ["ta"] : ["teacher", "ta"];
+      const people = await api.getAll<any>(`/api/v1/courses/${picked.id}/users`, {
+        "enrollment_type[]": kinds,
+        "include[]": ["email", "enrollments"],
+        per_page: 100,
+      });
+      const lines = people.map((u) => {
+        const types: string[] = (u.enrollments ?? []).map((e: any) => e.type);
+        const roles = [
+          types.includes("TeacherEnrollment") ? "Teacher" : "",
+          types.includes("TaEnrollment") ? "TA" : "",
+        ].filter(Boolean);
+        const shown = roles.length ? roles.join(" and ") : kinds.length === 1 && kinds[0] === "ta" ? "TA" : "Teacher";
+        return `${u.name ?? "Unnamed"} (${shown}), ${u.email || "email not shown by Canvas"}`;
+      });
+      return bullets(lines, "No teachers or TAs are listed for this course.");
+    },
+  },
+  {
     name: "get_announcements",
     title: "Announcements",
     description:

@@ -89,6 +89,10 @@
       "description": "The syllabus text for one Canvas course, with HTML removed. Pass course_id as the Canvas course ID or as the course name. Example: \"What does the Canvas syllabus say about grading in Scripting?\""
     },
     {
+      "name": "get_course_people",
+      "description": "The teachers and teaching assistants of one Canvas course, with their role and email address when Canvas shows it. Pass course_id as the Canvas course ID or as the course name. Set role to teacher or ta to show only one kind, or leave it out for both. Canvas hides some email addresses from students, and those people are listed without one. Example: \"Who teaches my Canvas Networking course and how do I email them?\""
+    },
+    {
       "name": "get_announcements",
       "description": "Recent Canvas announcements, either for the course_ids you pass or for all your active courses. Each course id can be the Canvas course ID or the course name. Pass limit to show fewer or more than 20 announcements, and page to see the next ones. Example: \"What did my instructors announce in Canvas lately?\""
     },

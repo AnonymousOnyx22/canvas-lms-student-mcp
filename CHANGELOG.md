@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- New tool get_course_people lists the teachers and teaching assistants of a Canvas course with their role and email address. Set role to teacher or ta to show one kind. Canvas hides some email addresses from students, and those people are listed without one.
+
 - New tool get_quizzes lists Canvas quizzes and exams with when each opens, is due and closes, the time limit, the attempts you used and your score. Set when to upcoming or past, and pass course_id for one course.
 
 - New tool get_file reads one Canvas file by its file ID, for example one found with get_assignment_files. Text, CSV, JSON and HTML files come back as text. PDF, Word, slide deck and image files return the name, type and size only, and files over 5 MB are not downloaded.

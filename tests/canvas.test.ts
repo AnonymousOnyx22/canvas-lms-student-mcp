@@ -77,6 +77,14 @@ beforeAll(async () => {
       res.writeHead(404);
       return res.end("{}");
     }
+    if (p === "/api/v1/courses/1/users") {
+      const kinds = url.searchParams.getAll("enrollment_type[]");
+      const all = [
+        { id: 11, name: "Dana Teacher", email: "dana@school.test", enrollments: [{ type: "TeacherEnrollment" }] },
+        { id: 12, name: "Sam Assistant", enrollments: [{ type: "TaEnrollment" }] },
+      ];
+      return json(all.filter((u) => kinds.includes(u.enrollments[0].type === "TaEnrollment" ? "ta" : "teacher")));
+    }
     if (p === "/api/v1/courses/1/quizzes")
       return json([
         { id: 71, title: "Midterm", unlock_at: past, due_at: future, lock_at: futureEnd, time_limit: 90, allowed_attempts: 2, points_possible: 50 },
@@ -212,7 +220,7 @@ describe("canvas-lms-student-mcp", () => {
   it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(18);
+    expect(tools.length).toBe(19);
     for (const t of tools) {
       if (t.name === "export_due_dates_calendar") {
         expect(t.annotations?.readOnlyHint).toBe(false);
@@ -238,7 +246,7 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(18);
+    expect(listed.length).toBe(19);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
@@ -250,6 +258,7 @@ describe("canvas-lms-student-mcp", () => {
         "get_my_grades",
         "get_course_content",
         "get_syllabus",
+        "get_course_people",
         "get_announcements",
         "get_whats_new",
         "get_discussions",
@@ -583,6 +592,23 @@ describe("get_assignment_files", () => {
     expect(none.text).toContain("no files linked");
     const missing = await call(await connect(), "get_assignment_files", { course_id: 1, assignment: "Nope" });
     expect(missing.text).toContain("No assignment");
+  });
+});
+
+describe("get_course_people", () => {
+  it("lists teachers and TAs with email and filters by role", async () => {
+    const c = await connect();
+    const all = (await call(c, "get_course_people", { course_id: 1 })).text;
+    expect(all).toContain("Dana Teacher (Teacher), dana@school.test");
+    expect(all).toContain("Sam Assistant (TA), email not shown by Canvas");
+
+    const tas = (await call(c, "get_course_people", { course_id: 1, role: "ta" })).text;
+    expect(tas).toContain("Sam Assistant");
+    expect(tas).not.toContain("Dana");
+
+    const teachers = (await call(c, "get_course_people", { course_id: "Networking 1", role: "teacher" })).text;
+    expect(teachers).toContain("Dana Teacher");
+    expect(teachers).not.toContain("Sam");
   });
 });
 
