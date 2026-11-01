@@ -4,7 +4,7 @@
 
 Ask your AI what's actually left to do in Canvas.
 
-Canvas LMS MCP is a free, open source [MCP](https://modelcontextprotocol.io) server for Claude, ChatGPT, Cursor and other AI apps. It reads your Canvas courses, due dates, grades and announcements, and it is **read only** in Canvas: it never submits, edits or deletes anything there. The one thing it writes is an .ics calendar file on your own computer, and only when you ask it to.
+Canvas LMS MCP is a free, open source [MCP](https://modelcontextprotocol.io) server for Claude, Cursor and other AI apps that run a local MCP server. It reads your Canvas courses, quizzes, files, due dates, grades and announcements, and it is **read only** in Canvas: it never submits, edits or deletes anything there. The one thing it writes is an .ics calendar file on your own computer, and only when you ask it to.
 
 Install and run it with npx, no install step needed:
 
