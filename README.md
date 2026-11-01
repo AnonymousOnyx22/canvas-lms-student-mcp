@@ -55,7 +55,7 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 
 ## Tools
 
-All 16 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
+All 17 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
 
 Where a tool works on one course, you can name the course instead of looking up its number. Give the Canvas course ID or the course name, for example "Networking 1", and the name is matched against the list `get_my_courses` shows. A name that fits no course says so and points back at `get_my_courses`.
 
@@ -76,6 +76,7 @@ Where a tool works on one course, you can name the course instead of looking up 
 | `get_target_grade` | What score is needed on remaining work to reach a target percent | "What do I need on the rest of my work in Networking 1 to get an 85 percent?" |
 | `get_assignment_files` | The files linked in one assignment's instructions, with name, type, size and a link | "What files come with the Lab 4 assignment in Networking 1?" |
 | `get_submission_feedback` | The instructor's comments on your graded submission, with the score and grade | "What did the teacher say about my Lab 4 submission in Networking 1?" |
+| `get_file` | One Canvas file by ID. Text, CSV, JSON and HTML files come back as text, other types give the name, type and size | "Open Canvas file 501 and summarize it." |
 | `export_due_dates_calendar` | An .ics file with your due dates, ready to import into Google Calendar or Apple Calendar | "Put my Canvas due dates in Google Calendar." |
 
 ## Calendar export
@@ -88,7 +89,7 @@ The file holds the next 30 days and only the work you still owe. Use `days_ahead
 
 - Your token stays on your computer. It is only sent to your own school's Canvas address.
 - Nothing is sent to any other server by this project.
-- Fifteen tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
+- Sixteen tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
 - Revoke the token any time in Canvas settings.
 
 ## Troubleshooting
@@ -131,7 +132,7 @@ Canvas (Instructure) and Brightspace (D2L) are separate products, so a server fo
 
 Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.
 
-Here is what the 16 tools cover on Canvas, so you can check that your question has a tool before you install it.
+Here is what the 17 tools cover on Canvas, so you can check that your question has a tool before you install it.
 
 | Canvas feature | Tool | What you get |
 | --- | --- | --- |
@@ -150,6 +151,7 @@ Here is what the 16 tools cover on Canvas, so you can check that your question h
 | Target grade | `get_target_grade` | The score needed on remaining work to reach a target percent, with the best and worst finish |
 | Assignment files | `get_assignment_files` | Files linked in one assignment's instructions, with type, size and a Canvas link. It does not download them. |
 | Submission feedback | `get_submission_feedback` | Your score and the instructor's comments on one graded submission |
+| Read a file | `get_file` | One file by its Canvas file ID. Text, CSV, JSON and HTML files come back as text. PDF, Word, slide deck and image files return only the name, type and size. Files over 5 MB are not downloaded. |
 | Calendar export | `export_due_dates_calendar` | An .ics file of due dates and events, or the text to save yourself. It writes the file on your computer. |
 
 ## More free student MCP servers

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { HttpClient } from "./core/http.js";
+import { type HttpClient, downloadFile } from "./core/http.js";
 import { type ToolDef, bullets, fmtDate, stripHtml } from "./core/tools.js";
 import { type CalendarEvent, buildIcs, isoDay, saveIcsFile } from "./ics.js";
 import { activeCourses, pickCourseId, pickCourseIds, pickCourses } from "./courses.js";
@@ -547,6 +547,23 @@ export const tools: ToolDef<Api>[] = [
        return [`Feedback for ${found.name}`, ...lines].join("\n");
      },
    },
+    {
+      name: "get_file",
+      title: "Read a file",
+      description:
+        "Read one file from Canvas by its file ID, such as a file found with get_assignment_files or get_course_content. Plain text, CSV, JSON and HTML files come back as text. PDF, Word, slide deck and image files return the name, type and size with a note, because their text is not extracted. Files over 5 MB are not downloaded. Example: \"Open Canvas file 501 and summarize it.\"",
+      inputSchema: {
+        file_id: z
+          .union([z.string(), z.number()])
+          .describe("The Canvas file ID, the number in a file link such as /files/501."),
+      },
+      run: async ({ file_id }, api) => {
+        const f = await downloadFile(api, file_id);
+        const head = `${f.name} (file ${f.id}, ${f.contentType}, ${f.size} bytes)`;
+        if (f.text === undefined) return `${head}\n${f.note ?? "No text available."}`;
+        return `${head}\n\n${f.text.trim() || "The file is empty."}`;
+      },
+    },
     {
      name: "export_due_dates_calendar",
      title: "Export due dates calendar",

@@ -109,6 +109,10 @@
        "name": "get_submission_feedback",
        "description": "The instructor's comments on your graded submission for one Canvas assignment, with the score and grade. Pass course_id as the Canvas course ID or as the course name and assignment as the assignment ID or its name. Example: \"What did the teacher say about my Lab 4 submission in Networking 1?\""
      },
+    {
+      "name": "get_file",
+      "description": "Read one file from Canvas by its file ID, such as a file found with get_assignment_files or get_course_content. Plain text, CSV, JSON and HTML files come back as text. PDF, Word, slide deck and image files return the name, type and size with a note, because their text is not extracted. Files over 5 MB are not downloaded. Example: \"Open Canvas file 501 and summarize it.\""
+    },
      {
        "name": "export_due_dates_calendar",
       "description": "Build an iCalendar (.ics) file of Canvas due dates and calendar events that opens in Google Calendar, Apple Calendar and Outlook. Give a folder in path and the file is saved there, or leave path out and the calendar text comes back so you can save it yourself. Each event carries the course name, the points, the submission status and a link back to Canvas, plus a reminder the day before. By default only work you still owe is in the file, set include_submitted to add the work you already handed in. Use days_ahead to change how far ahead to look, 30 days by default, or course_id as the Canvas course ID or as the course name for one course. Example: \"Put my Canvas due dates in Google Calendar.\""

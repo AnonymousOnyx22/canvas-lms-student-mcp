@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New tool get_file reads one Canvas file by its file ID, for example one found with get_assignment_files. Text, CSV, JSON and HTML files come back as text. PDF, Word, slide deck and image files return the name, type and size only, and files over 5 MB are not downloaded.
+
 ## 0.1.10
 
 - Update the table of sibling MCP servers in the README
