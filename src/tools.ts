@@ -456,6 +456,31 @@ export const tools: ToolDef<Api>[] = [
     },
   },
   {
+    name: "get_inbox",
+    title: "Inbox",
+    description:
+      "Your Canvas inbox, newest first, with the subject, who it is with, when the last message came and a short preview. Only unread conversations are shown by default. Set unread_only to false to include read ones too. Pass limit and page to step through long lists, 20 conversations by default. This tool only reads and never marks anything as read. Example: \"Did any instructor message me in Canvas?\"",
+    inputSchema: {
+      unread_only: z.boolean().optional().describe("Optional, show only unread conversations. Defaults to true."),
+      limit: limitParam,
+      page: pageParam,
+    },
+    run: async ({ unread_only, limit, page }, api) => {
+      const unread = unread_only !== false;
+      const items = await api.getAll<any>("/api/v1/conversations", {
+        ...(unread ? { scope: "unread" } : {}),
+        per_page: 50,
+      });
+      const lines = items.map((m) => {
+        const who = (m.participants ?? []).map((p: any) => p.name).filter(Boolean).join(", ") || "unknown";
+        const state = m.workflow_state === "unread" ? " [unread]" : "";
+        const preview = stripHtml(m.last_message, 200).replace(/\n/g, " ");
+        return `${m.subject || "(no subject)"}${state} with ${who} (${m.last_message_at ? fmtDate(m.last_message_at) : "no date"})\n  ${preview}`;
+      });
+      return bullets(pageLines(lines, limit, page), unread ? "No unread Canvas messages." : "Your Canvas inbox is empty.");
+    },
+  },
+  {
     name: "get_discussions",
     title: "Discussions",
     description:

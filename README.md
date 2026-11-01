@@ -55,7 +55,7 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 
 ## Tools
 
-All 19 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
+All 20 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
 
 Where a tool works on one course, you can name the course instead of looking up its number. Give the Canvas course ID or the course name, for example "Networking 1", and the name is matched against the list `get_my_courses` shows. A name that fits no course says so and points back at `get_my_courses`.
 
@@ -73,6 +73,7 @@ Where a tool works on one course, you can name the course instead of looking up 
 | `get_course_people` | Teachers and TAs of a course by ID or name, with role and email, and an optional role filter | "Who teaches my Canvas Networking course and how do I email them?" |
 | `get_announcements` | Recent announcements, for the courses you name or for all of them | "What did my instructors announce in Canvas lately?" |
 | `get_whats_new` | One catch up: recent announcements, newly graded work and unread discussion replies | "What's new in Canvas since last week?" |
+| `get_inbox` | Unread Canvas inbox conversations with who they are with, the date and a preview | "Did any instructor message me in Canvas?" |
 | `get_discussions` | Discussion topics for a course by ID or name | "What discussions are open in my Canvas Networking course?" |
 | `get_calendar_events` | Calendar events between two dates | "What is on my Canvas calendar between 2026-10-01 and 2026-10-31?" |
 | `get_target_grade` | What score is needed on remaining work to reach a target percent | "What do I need on the rest of my work in Networking 1 to get an 85 percent?" |
@@ -91,7 +92,7 @@ The file holds the next 30 days and only the work you still owe. Use `days_ahead
 
 - Your token stays on your computer. It is only sent to your own school's Canvas address.
 - Nothing is sent to any other server by this project.
-- Eighteen tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
+- Nineteen tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
 - Revoke the token any time in Canvas settings.
 
 ## Troubleshooting
@@ -134,7 +135,7 @@ Canvas (Instructure) and Brightspace (D2L) are separate products, so a server fo
 
 Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.
 
-Here is what the 19 tools cover on Canvas, so you can check that your question has a tool before you install it.
+Here is what the 20 tools cover on Canvas, so you can check that your question has a tool before you install it.
 
 | Canvas feature | Tool | What you get |
 | --- | --- | --- |
@@ -149,6 +150,7 @@ Here is what the 19 tools cover on Canvas, so you can check that your question h
 | Instructors and TAs | `get_course_people` | Teachers and teaching assistants for one course with their email when Canvas shows it, filtered by `role` |
 | Announcements | `get_announcements` | Recent announcements for all courses or the ones you name |
 | What changed | `get_whats_new` | Announcements, newly graded work and unread discussion replies in one window |
+| Inbox | `get_inbox` | Unread inbox conversations with who they are with and a preview, with `unread_only`, `limit` and `page` |
 | Discussions | `get_discussions` | Discussion topics for one course, with unread counts |
 | Quizzes and exams | `get_quizzes` | Open, due and close times, time limit, attempts used and score, for upcoming or past quizzes |
 | Calendar | `get_calendar_events` | Canvas events and assignment due dates between two dates |

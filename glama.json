@@ -101,6 +101,10 @@
       "description": "One catch up across your Canvas courses: announcements posted in the last few days, assignments graded in that window and discussions that still have unread replies. Pass since_days to change the window, 7 by default, or course_id as the Canvas course ID or as the course name to check one course. Pass limit and page to step through long lists, 20 items per section by default. Example: \"What's new in Canvas since last week?\""
     },
     {
+      "name": "get_inbox",
+      "description": "Your Canvas inbox, newest first, with the subject, who it is with, when the last message came and a short preview. Only unread conversations are shown by default. Set unread_only to false to include read ones too. Pass limit and page to step through long lists, 20 conversations by default. This tool only reads and never marks anything as read. Example: \"Did any instructor message me in Canvas?\""
+    },
+    {
       "name": "get_discussions",
       "description": "Discussion topics for one Canvas course, with unread counts. Pass course_id as the Canvas course ID or as the course name. Example: \"What discussions are open in my Canvas Networking course?\""
     },

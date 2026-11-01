@@ -85,6 +85,13 @@ beforeAll(async () => {
       ];
       return json(all.filter((u) => kinds.includes(u.enrollments[0].type === "TaEnrollment" ? "ta" : "teacher")));
     }
+    if (p === "/api/v1/conversations") {
+      const all = [
+        { id: 1, subject: "Lab 4 question", workflow_state: "unread", last_message: "Please resubmit by Friday", last_message_at: future, participants: [{ name: "Dana Teacher" }] },
+        { id: 2, subject: "Old thread", workflow_state: "read", last_message: "Thanks", last_message_at: past, participants: [{ name: "Sam Assistant" }] },
+      ];
+      return json(url.searchParams.get("scope") === "unread" ? all.filter((m) => m.workflow_state === "unread") : all);
+    }
     if (p === "/api/v1/courses/1/quizzes")
       return json([
         { id: 71, title: "Midterm", unlock_at: past, due_at: future, lock_at: futureEnd, time_limit: 90, allowed_attempts: 2, points_possible: 50 },
@@ -220,7 +227,7 @@ describe("canvas-lms-student-mcp", () => {
   it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(19);
+    expect(tools.length).toBe(20);
     for (const t of tools) {
       if (t.name === "export_due_dates_calendar") {
         expect(t.annotations?.readOnlyHint).toBe(false);
@@ -246,7 +253,7 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(19);
+    expect(listed.length).toBe(20);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
@@ -261,6 +268,7 @@ describe("canvas-lms-student-mcp", () => {
         "get_course_people",
         "get_announcements",
         "get_whats_new",
+        "get_inbox",
         "get_discussions",
         "get_calendar_events",
         "get_target_grade",
@@ -609,6 +617,19 @@ describe("get_course_people", () => {
     const teachers = (await call(c, "get_course_people", { course_id: "Networking 1", role: "teacher" })).text;
     expect(teachers).toContain("Dana Teacher");
     expect(teachers).not.toContain("Sam");
+  });
+});
+
+describe("get_inbox", () => {
+  it("shows unread conversations by default and all with unread_only false", async () => {
+    const c = await connect();
+    const unread = (await call(c, "get_inbox")).text;
+    expect(unread).toContain("Lab 4 question");
+    expect(unread).toContain("Dana Teacher");
+    expect(unread).toContain("Please resubmit by Friday");
+    expect(unread).not.toContain("Old thread");
+    const all = (await call(c, "get_inbox", { unread_only: false })).text;
+    expect(all).toContain("Old thread");
   });
 });
 

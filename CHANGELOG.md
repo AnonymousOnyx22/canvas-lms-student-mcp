@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- New tool get_inbox lists your unread Canvas inbox conversations, newest first, with who they are with, the date and a short preview. It only reads and does not mark anything as read. Set unread_only to false to include read ones, and use limit and page for long lists.
+
 - New tool get_course_people lists the teachers and teaching assistants of a Canvas course with their role and email address. Set role to teacher or ta to show one kind. Canvas hides some email addresses from students, and those people are listed without one.
 
 - New tool get_quizzes lists Canvas quizzes and exams with when each opens, is due and closes, the time limit, the attempts you used and your score. Set when to upcoming or past, and pass course_id for one course.
