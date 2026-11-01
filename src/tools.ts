@@ -37,6 +37,11 @@ const pageParam = z
   .optional()
   .describe("Optional, which page of items to show, starting at 1. Defaults to 1.");
 
+/** A quiz date, or "not set" when Canvas has none. */
+function quizDate(iso?: string | null): string {
+  return iso ? fmtDate(iso) : "not set";
+}
+
 function submissionLine(a: any): string {
   const s = a.submission;
   let status = "not submitted";
@@ -123,6 +128,63 @@ export const tools: ToolDef<Api>[] = [
         .sort((a, b) => (a.when ?? "9").localeCompare(b.when ?? "9"));
       const window = days_ahead == null ? "" : ` in the next ${days_ahead} ${days_ahead === 1 ? "day" : "days"}`;
       return bullets(rows.map((r) => r.text), `No upcoming due dates${window}.`);
+    },
+  },
+  {
+    name: "get_quizzes",
+    title: "Quizzes and exams",
+    description:
+      "Canvas quizzes and exams with when each opens, when it is due and when it closes, the time limit, the attempts you used and your score. Pass course_id as the Canvas course ID or as the course name to check one course, or leave it out for all active courses. Set when to upcoming for quizzes not yet closed, or past for closed ones. Pass limit and page to step through long lists, 20 items by default. Example: \"Which Canvas quizzes and exams are coming up and how long do I get?\"",
+    inputSchema: {
+      course_id: courseId.optional().describe("Optional, check one Canvas course only."),
+      when: z.enum(["upcoming", "past", "all"]).optional().describe("upcoming, past or all. Defaults to all."),
+      limit: limitParam,
+      page: pageParam,
+    },
+    run: async ({ course_id, when, limit, page }, api) => {
+      const courses = await activeCourses(api);
+      const picked = pickCourses(courses, course_id);
+      if ("message" in picked) return picked.message;
+      if (!picked.courses.length) return "No active courses found.";
+      const now = Date.now();
+      const rows: { time: number; text: string }[] = [];
+      const notes: string[] = [];
+      for (const c of picked.courses) {
+        let quizzes: any[];
+        try {
+          quizzes = await api.getAll<any>(`/api/v1/courses/${c.id}/quizzes`, { per_page: 100 });
+        } catch {
+          notes.push(`Canvas would not list the quizzes for ${c.name}.`);
+          continue;
+        }
+        for (const q of quizzes) {
+          const end = q.lock_at ?? q.due_at ?? null;
+          const endTime = end ? Date.parse(end) : NaN;
+          const closed = !Number.isNaN(endTime) && endTime < now;
+          if (when === "upcoming" && closed) continue;
+          if (when === "past" && !closed) continue;
+          let attempts = "";
+          try {
+            const res = await api.get<any>(`/api/v1/courses/${c.id}/quizzes/${q.id}/submissions`);
+            const subs: any[] = Array.isArray(res?.quiz_submissions) ? res.quiz_submissions : [];
+            const used = subs.reduce((n, x) => Math.max(n, Number(x.attempt) || 0), 0);
+            const scores = subs.map((x) => x.kept_score ?? x.score).filter((x) => x != null);
+            const allowed = q.allowed_attempts == null || q.allowed_attempts < 0 ? "unlimited" : q.allowed_attempts;
+            attempts = `, attempts used ${used} of ${allowed}`;
+            if (scores.length) attempts += `, score ${Math.max(...scores)}/${q.points_possible ?? "?"}`;
+          } catch {
+            attempts = ", attempts not available";
+          }
+          const limitText = q.time_limit ? `${q.time_limit} min limit` : "no time limit";
+          rows.push({
+            time: Number.isNaN(endTime) ? Infinity : endTime,
+            text: `${q.title ?? "Untitled"} (${c.name}) opens ${quizDate(q.unlock_at)}, due ${quizDate(q.due_at)}, closes ${quizDate(q.lock_at)}, ${limitText}${attempts}`,
+          });
+        }
+      }
+      rows.sort((a, b) => (when === "past" ? b.time - a.time : a.time - b.time));
+      const body = bullets(pageLines(rows.map((r) => r.text), limit, page), "No quizzes found.");
+      return notes.length ? `${body}\n${notes.join("\n")}` : body;
     },
   },
   {

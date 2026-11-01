@@ -55,7 +55,7 @@ To check your setup first, run `npx canvas-lms-student-mcp doctor` with the two 
 
 ## Tools
 
-All 17 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
+All 18 tools read from Canvas LMS and none of them can submit, edit or delete anything there. Every tool description includes an example prompt your AI can copy, and the Ask like column repeats those prompts here. The last one, `export_due_dates_calendar`, writes an .ics file to a folder you name.
 
 Where a tool works on one course, you can name the course instead of looking up its number. Give the Canvas course ID or the course name, for example "Networking 1", and the name is matched against the list `get_my_courses` shows. A name that fits no course says so and points back at `get_my_courses`.
 
@@ -64,6 +64,7 @@ Where a tool works on one course, you can name the course instead of looking up 
 | `get_my_courses` | Your active courses and their IDs | "What are my Canvas courses this term?" |
 | `get_todo` | Your Canvas to-do list | "What does Canvas say I still need to do?" |
 | `get_upcoming_due_dates` | Upcoming assignments and events, soonest first, with an optional days_ahead window | "What is due in the next 3 days?" |
+| `get_quizzes` | Quizzes and exams with open, due and close times, time limit, attempts used and score | "Which Canvas quizzes and exams are coming up and how long do I get?" |
 | `get_missing_assignments` | Past due work you haven't submitted | "What am I missing in Canvas?" |
 | `get_assignments` | Assignments for a course by ID or name, with due dates and submission status | "Which Canvas assignments in Networking 1 are overdue?" |
 | `get_my_grades` | Current grade for each course, plus the assignment scores and submission status behind it | "What is my grade in each Canvas course and which assignments make it up?" |
@@ -89,7 +90,7 @@ The file holds the next 30 days and only the work you still owe. Use `days_ahead
 
 - Your token stays on your computer. It is only sent to your own school's Canvas address.
 - Nothing is sent to any other server by this project.
-- Sixteen tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
+- Seventeen tools are marked read only. The calendar export writes one .ics file in a folder you name, and nothing else.
 - Revoke the token any time in Canvas settings.
 
 ## Troubleshooting
@@ -132,7 +133,7 @@ Canvas (Instructure) and Brightspace (D2L) are separate products, so a server fo
 
 Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.
 
-Here is what the 17 tools cover on Canvas, so you can check that your question has a tool before you install it.
+Here is what the 18 tools cover on Canvas, so you can check that your question has a tool before you install it.
 
 | Canvas feature | Tool | What you get |
 | --- | --- | --- |
@@ -147,6 +148,7 @@ Here is what the 17 tools cover on Canvas, so you can check that your question h
 | Announcements | `get_announcements` | Recent announcements for all courses or the ones you name |
 | What changed | `get_whats_new` | Announcements, newly graded work and unread discussion replies in one window |
 | Discussions | `get_discussions` | Discussion topics for one course, with unread counts |
+| Quizzes and exams | `get_quizzes` | Open, due and close times, time limit, attempts used and score, for upcoming or past quizzes |
 | Calendar | `get_calendar_events` | Canvas events and assignment due dates between two dates |
 | Target grade | `get_target_grade` | The score needed on remaining work to reach a target percent, with the best and worst finish |
 | Assignment files | `get_assignment_files` | Files linked in one assignment's instructions, with type, size and a Canvas link. It does not download them. |

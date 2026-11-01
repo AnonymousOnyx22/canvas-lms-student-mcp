@@ -77,6 +77,14 @@ beforeAll(async () => {
       res.writeHead(404);
       return res.end("{}");
     }
+    if (p === "/api/v1/courses/1/quizzes")
+      return json([
+        { id: 71, title: "Midterm", unlock_at: past, due_at: future, lock_at: futureEnd, time_limit: 90, allowed_attempts: 2, points_possible: 50 },
+        { id: 72, title: "Quiz 1", due_at: longAgo, lock_at: longAgo, time_limit: null, allowed_attempts: -1, points_possible: 10 },
+      ]);
+    if (p === "/api/v1/courses/1/quizzes/71/submissions") return json({ quiz_submissions: [] });
+    if (p === "/api/v1/courses/1/quizzes/72/submissions")
+      return json({ quiz_submissions: [{ attempt: 1, score: 6, kept_score: 6 }, { attempt: 2, score: 8, kept_score: 8 }] });
     if (p === "/api/v1/courses/1/assignments")
       return json([
         {
@@ -204,7 +212,7 @@ describe("canvas-lms-student-mcp", () => {
   it("reads from Canvas without changing it, and only the calendar export writes a file", async () => {
     const client = await connect();
     const { tools } = await client.listTools();
-    expect(tools.length).toBe(17);
+    expect(tools.length).toBe(18);
     for (const t of tools) {
       if (t.name === "export_due_dates_calendar") {
         expect(t.annotations?.readOnlyHint).toBe(false);
@@ -230,12 +238,13 @@ describe("canvas-lms-student-mcp", () => {
 
     // The tool list in src/tools.ts is the source of truth. Update this snapshot
     // when a tool is added, and the README and llms.txt with it.
-    expect(listed.length).toBe(17);
+    expect(listed.length).toBe(18);
     expect(listed.map((t) => t.name)).toMatchInlineSnapshot(`
       [
         "get_my_courses",
         "get_todo",
         "get_upcoming_due_dates",
+        "get_quizzes",
         "get_missing_assignments",
         "get_assignments",
         "get_my_grades",
@@ -574,6 +583,26 @@ describe("get_assignment_files", () => {
     expect(none.text).toContain("no files linked");
     const missing = await call(await connect(), "get_assignment_files", { course_id: 1, assignment: "Nope" });
     expect(missing.text).toContain("No assignment");
+  });
+});
+
+describe("get_quizzes", () => {
+  it("shows times, time limit, attempts and score, and filters by when", async () => {
+    const c = await connect();
+    const all = (await call(c, "get_quizzes", { course_id: 1 })).text;
+    expect(all).toContain("Midterm");
+    expect(all).toContain("90 min limit");
+    expect(all).toContain("attempts used 0 of 2");
+    expect(all).toContain("attempts used 2 of unlimited, score 8/10");
+    expect(all).toContain("no time limit");
+
+    const upcoming = (await call(c, "get_quizzes", { course_id: 1, when: "upcoming" })).text;
+    expect(upcoming).toContain("Midterm");
+    expect(upcoming).not.toContain("Quiz 1");
+
+    const old = (await call(c, "get_quizzes", { course_id: 1, when: "past" })).text;
+    expect(old).toContain("Quiz 1");
+    expect(old).not.toContain("Midterm");
   });
 });
 
