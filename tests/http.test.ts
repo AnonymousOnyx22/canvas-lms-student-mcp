@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createClient, describeStatus, canvasErrorMessage } from "../src/core/http.js";
+import { createClient, describeStatus, canvasErrorMessage, downloadFile } from "../src/core/http.js";
 
 function response(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -448,5 +448,59 @@ describe("describeStatus", () => {
   it("reports seconds from a date retry-after header", () => {
     const later = new Date(Date.now() + 60_000).toUTCString();
     expect(describeStatus(429, { retryAfter: later })).toMatch(/Canvas asked to wait \d+ seconds\./);
+  });
+});
+
+describe("downloadFile", () => {
+  const meta = (over: Record<string, unknown> = {}) => ({
+    id: 7,
+    display_name: "notes.txt",
+    "content-type": "text/plain",
+    size: 5,
+    url: "https://files.example.com/dl/7?verifier=x",
+    ...over,
+  });
+
+  function clientFor(m: unknown, body = "hello") {
+    return createClient({
+      baseUrl: "https://school.instructure.com",
+      fetchImpl: fakeFetch((url) =>
+        url.includes("/api/v1/files/7") ? response(m) : new Response(body, { status: 200 }),
+      ),
+    });
+  }
+
+  it("returns the text of a text file", async () => {
+    const file = await downloadFile(clientFor(meta()), 7);
+    expect(file.text).toBe("hello");
+    expect(file.name).toBe("notes.txt");
+  });
+
+  it("strips tags from HTML", async () => {
+    const api = clientFor(
+      meta({ display_name: "a.html", "content-type": "text/html" }),
+      "<p>Hi <b>there</b></p><script>x()</script>",
+    );
+    expect((await downloadFile(api, "7")).text).toBe("Hi there");
+  });
+
+  it("skips the download when the record is over the limit", async () => {
+    const file = await downloadFile(clientFor(meta({ size: 100 })), 7, 10);
+    expect(file.text).toBeUndefined();
+    expect(file.note).toContain("limit");
+  });
+
+  it("stops reading when the body is bigger than the record said", async () => {
+    await expect(downloadFile(clientFor(meta(), "x".repeat(50)), 7, 10)).rejects.toThrow(/limit/);
+  });
+
+  it("gives a note for a PDF without downloading it", async () => {
+    const file = await downloadFile(clientFor(meta({ display_name: "a.pdf", "content-type": "application/pdf" })), 7);
+    expect(file.text).toBeUndefined();
+    expect(file.note).toContain("application/pdf");
+  });
+
+  it("rejects an ID that is not a number", async () => {
+    await expect(downloadFile(clientFor(meta()), "abc")).rejects.toThrow(/not a Canvas file ID/);
   });
 });

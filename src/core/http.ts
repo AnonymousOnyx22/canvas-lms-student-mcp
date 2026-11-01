@@ -26,6 +26,8 @@ export interface HttpClient {
   get<T = unknown>(path: string, query?: Query): Promise<T>;
   /** Follows RFC 5988 `Link: rel="next"` pagination and concatenates array pages. */
   getAll<T = unknown>(path: string, query?: Query, maxPages?: number): Promise<T[]>;
+  /** Downloads a file from a full URL. Stops with an ApiError once more than maxBytes arrive. */
+  getBytes(url: string, maxBytes: number): Promise<Uint8Array>;
 }
 
 function buildUrl(base: string, path: string, query: Query = {}, defaults: Record<string, string> = {}): string {
@@ -103,12 +105,12 @@ export function createClient(opts: ClientOptions): HttpClient {
     }
   }
 
-  async function request(url: string): Promise<Response> {
+  async function request(url: string, accept = "application/json"): Promise<Response> {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeout);
     try {
       const res = await doFetch(url, {
-        headers: { Accept: "application/json", ...(opts.headers ?? {}) },
+        headers: { Accept: accept, ...(opts.headers ?? {}) },
         signal: ctrl.signal,
       });
       if (!res.ok) {
@@ -185,7 +187,98 @@ export function createClient(opts: ClientOptions): HttpClient {
       }
       return out;
     },
+    async getBytes(url: string, maxBytes: number): Promise<Uint8Array> {
+      const res = await request(toUrl(url), "*/*");
+      const tooBig = () =>
+        new ApiError(`The file is larger than the ${maxBytes} byte limit, so it was not downloaded.`, 0);
+      const declared = Number(res.headers.get("content-length"));
+      if (Number.isFinite(declared) && declared > maxBytes) throw tooBig();
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      if (res.body) {
+        const reader = res.body.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          total += value.length;
+          if (total > maxBytes) {
+            await reader.cancel().catch(() => undefined);
+            throw tooBig();
+          }
+          chunks.push(value);
+        }
+      }
+      const out = new Uint8Array(total);
+      let at = 0;
+      for (const c of chunks) {
+        out.set(c, at);
+        at += c.length;
+      }
+      return out;
+    },
   };
+}
+
+export const DEFAULT_MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+export interface DownloadedFile {
+  id: string;
+  name: string;
+  contentType: string;
+  size: number;
+  /** Extracted text, or undefined when the file type is not one we can read as text. */
+  text?: string;
+  /** Why there is no text, when text is undefined. */
+  note?: string;
+}
+
+function isTextType(type: string, name: string): boolean {
+  if (/^text\//i.test(type) || /(json|xml|csv|javascript|yaml)/i.test(type)) return true;
+  return /\.(txt|md|csv|json|xml|html?|ya?ml|js|ts|py|java|c|cpp|h|sql|log|tex)$/i.test(name);
+}
+
+function htmlToText(html: string): string {
+  return html
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .trim();
+}
+
+/**
+ * Fetches one Canvas file by ID. The size is checked from the file record before the download
+ * and again while reading. Plain text, CSV, JSON and HTML files come back as text; other
+ * types (PDF, Word, images) return metadata and a note instead of text.
+ */
+export async function downloadFile(
+  api: HttpClient,
+  fileId: string | number,
+  maxBytes = DEFAULT_MAX_FILE_BYTES,
+): Promise<DownloadedFile> {
+  const id = String(fileId).trim();
+  if (!/^\d+$/.test(id)) throw new ApiError(`"${fileId}" is not a Canvas file ID. A file ID is a number.`, 0);
+  const meta = await api.get<any>(`/api/v1/files/${id}`);
+  const name = String(meta.display_name ?? meta.filename ?? `file ${id}`);
+  const contentType = String(meta["content-type"] ?? meta.content_type ?? "application/octet-stream");
+  const size = Number(meta.size ?? 0);
+  const info: DownloadedFile = { id, name, contentType, size };
+  if (size > maxBytes) {
+    return { ...info, note: `The file is ${size} bytes, over the ${maxBytes} byte limit, so it was not downloaded.` };
+  }
+  if (!isTextType(contentType, name)) {
+    return { ...info, note: `Text can only be read from plain text, CSV, JSON and HTML files, not ${contentType}.` };
+  }
+  if (!meta.url) return { ...info, note: "Canvas did not give a download link for this file." };
+  const bytes = await api.getBytes(String(meta.url), maxBytes);
+  const raw = new TextDecoder("utf-8").decode(bytes);
+  const html = /html/i.test(contentType) || /\.html?$/i.test(name);
+  return { ...info, size: bytes.length, text: html ? htmlToText(raw) : raw };
 }
 
 export interface StatusDetail {
