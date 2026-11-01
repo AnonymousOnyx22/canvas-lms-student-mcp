@@ -123,18 +123,9 @@ The npm package ships two registry files: `server.json` for the Model Context Pr
 
 ## Why Canvas MCP
 
-If your school runs Canvas, use this server. If it runs Brightspace, use brightspace-mcp-server. The two cover the same ground for their own LMS.
+If you searched for a Canvas MCP server, this is the one for Canvas. It is free, open source and read only: it can look at your courses, due dates, grades and announcements, and it cannot submit, edit or delete anything in Canvas. You sign in with a token you create in your own Canvas account, and you start it with one npx command.
 
-Canvas (Instructure) and Brightspace (D2L) are separate products, so a server for one cannot sign in to the other or read its courses. Canvas MCP reads only Canvas, using a token from your own Canvas account. [Brightspace MCP](https://github.com/AnonymousOnyx22/brightspace-d2l-mcp) (`brightspace-d2l-mcp` on npm) reads only Brightspace, using your school login. Neither tool moves work or grades between the two, and neither one changes anything in the LMS.
-
-| | Canvas MCP | brightspace-mcp-server |
-| --- | --- | --- |
-| LMS | Canvas (Instructure) | Brightspace (D2L) |
-| Free | Yes | Yes |
-| Changes nothing in the LMS | Yes | Yes |
-| npx one liner | Yes | Yes |
-
-Canvas MCP signs in with an API token you create in Canvas. brightspace-mcp-server signs in with your school login through a one time setup command.
+Canvas (Instructure) and Brightspace (D2L) are separate products, so a server for one cannot sign in to the other or read its courses. If your school runs Brightspace instead, use [Brightspace MCP](https://github.com/AnonymousOnyx22/brightspace-d2l-mcp) (`brightspace-d2l-mcp` on npm), our Brightspace server, which is also read only. Neither one moves work or grades between the two systems.
 
 Here is what the 21 tools cover on Canvas, so you can check that your question has a tool before you install it.
 
