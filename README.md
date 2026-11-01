@@ -153,9 +153,9 @@ Here is what the 21 tools cover on Canvas, so you can check that your question h
 | Announcements | `get_announcements` | Recent announcements for all courses or the ones you name |
 | What changed | `get_whats_new` | Announcements, newly graded work and unread discussion replies in one window |
 | Inbox | `get_inbox` | Unread inbox conversations with who they are with and a preview, with `unread_only`, `limit` and `page` |
-| Discussions | `get_discussions` | Discussion topics for one course, with unread counts |
+| Discussions | `get_discussions` | Discussion topics for one course, with unread counts, with `limit` and `page` |
 | Quizzes and exams | `get_quizzes` | Open, due and close times, time limit, attempts used and score, for upcoming or past quizzes |
-| Calendar | `get_calendar_events` | Canvas events and assignment due dates between two dates |
+| Calendar | `get_calendar_events` | Canvas events and assignment due dates between two dates, with `limit` and `page` |
 | Target grade | `get_target_grade` | The score needed on remaining work to reach a target percent, with the best and worst finish |
 | Assignment files | `get_assignment_files` | Files linked in one assignment's instructions, with type, size and a Canvas link. It does not download them. |
 | Submission feedback | `get_submission_feedback` | Your score and the instructor's comments on one graded submission |

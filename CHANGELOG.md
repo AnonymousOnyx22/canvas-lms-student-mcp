@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- get_discussions and get_calendar_events now take limit and page. They show 20 items by default, with a note saying how many more there are, so long courses no longer fill the whole reply. Pass a bigger limit or the next page to see the rest.
+
 - New tool get_course_modules shows your progress through the modules of a Canvas course. Each module lists its state, and each item shows what Canvas requires of you (view, submit, contribute or a minimum score) and whether you have done it. Set only_open to true to hide completed modules.
 
 - New tool get_inbox lists your unread Canvas inbox conversations, newest first, with who they are with, the date and a short preview. It only reads and does not mark anything as read. Set unread_only to false to include read ones, and use limit and page for long lists.

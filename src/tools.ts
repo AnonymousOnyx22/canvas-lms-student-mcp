@@ -515,14 +515,18 @@ export const tools: ToolDef<Api>[] = [
     name: "get_discussions",
     title: "Discussions",
     description:
-      "Discussion topics for one Canvas course, with unread counts. Pass course_id as the Canvas course ID or as the course name. Example: \"What discussions are open in my Canvas Networking course?\"",
-    inputSchema: { course_id: courseId },
-    run: async ({ course_id }, api) => {
+      "Discussion topics for one Canvas course, with unread counts. Pass course_id as the Canvas course ID or as the course name. Pass limit and page to step through long lists, 20 topics by default. Example: \"What discussions are open in my Canvas Networking course?\"",
+    inputSchema: { course_id: courseId, limit: limitParam, page: pageParam },
+    run: async ({ course_id, limit, page }, api) => {
       const picked = await pickCourseId(api, course_id);
       if ("message" in picked) return picked.message;
       const items = await api.getAll<any>(`/api/v1/courses/${picked.id}/discussion_topics`, { per_page: 30 });
       return bullets(
-        items.map((d) => `${d.title} posted ${fmtDate(d.posted_at)}${d.unread_count ? ` (${d.unread_count} unread)` : ""}`),
+        pageLines(
+          items.map((d) => `${d.title} posted ${fmtDate(d.posted_at)}${d.unread_count ? ` (${d.unread_count} unread)` : ""}`),
+          limit,
+          page,
+        ),
         "No discussions.",
       );
     },
@@ -531,15 +535,21 @@ export const tools: ToolDef<Api>[] = [
     name: "get_calendar_events",
     title: "Calendar events",
     description:
-      "Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Example: \"What is on my Canvas calendar between 2026-10-01 and 2026-10-31?\"",
+      "Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Pass limit and page to step through long lists, 20 events by default. Example: \"What is on my Canvas calendar between 2026-10-01 and 2026-10-31?\"",
     inputSchema: {
       start_date: z.string().optional().describe("Start date, YYYY-MM-DD"),
       end_date: z.string().optional().describe("End date, YYYY-MM-DD"),
+      limit: limitParam,
+      page: pageParam,
     },
-    run: async ({ start_date, end_date }, api) => {
+    run: async ({ start_date, end_date, limit, page }, api) => {
       const items = await api.getAll<any>("/api/v1/calendar_events", { start_date, end_date, per_page: 100 });
       return bullets(
-        items.map((e) => `${e.title} on ${fmtDate(e.start_at ?? e.assignment?.due_at)}${e.context_name ? ` (${e.context_name})` : ""}`),
+        pageLines(
+          items.map((e) => `${e.title} on ${fmtDate(e.start_at ?? e.assignment?.due_at)}${e.context_name ? ` (${e.context_name})` : ""}`),
+          limit,
+          page,
+        ),
         "No calendar events in that range.",
       );
     },

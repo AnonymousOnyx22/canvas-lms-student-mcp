@@ -110,11 +110,11 @@
     },
     {
       "name": "get_discussions",
-      "description": "Discussion topics for one Canvas course, with unread counts. Pass course_id as the Canvas course ID or as the course name. Example: \"What discussions are open in my Canvas Networking course?\""
+      "description": "Discussion topics for one Canvas course, with unread counts. Pass course_id as the Canvas course ID or as the course name. Pass limit and page to step through long lists, 20 topics by default. Example: \"What discussions are open in my Canvas Networking course?\""
     },
     {
       "name": "get_calendar_events",
-      "description": "Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Example: \"What is on my Canvas calendar between 2026-10-01 and 2026-10-31?\""
+      "description": "Canvas calendar events and assignment due dates. Pass start_date and end_date as YYYY-MM-DD to limit the range. Pass limit and page to step through long lists, 20 events by default. Example: \"What is on my Canvas calendar between 2026-10-01 and 2026-10-31?\""
     },
     {
       "name": "get_target_grade",

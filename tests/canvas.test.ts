@@ -653,6 +653,20 @@ describe("get_inbox", () => {
   });
 });
 
+describe("get_calendar_events and get_discussions paging", () => {
+  it("pages calendar events and discussions with limit and page", async () => {
+    const c = await connect();
+    const first = (await call(c, "get_calendar_events", { limit: 1 })).text;
+    expect(first).toContain("Exam");
+    expect(first).not.toContain("Lab 4 due date");
+    expect(first).toContain("and 1 more");
+    const second = (await call(c, "get_calendar_events", { limit: 1, page: 2 })).text;
+    expect(second).toContain("Lab 4 due date");
+    expect(second).not.toContain("Exam");
+    expect((await call(c, "get_discussions", { course_id: 1, page: 2 })).text).toContain("No items on page 2");
+  });
+});
+
 describe("get_quizzes", () => {
   it("shows times, time limit, attempts and score, and filters by when", async () => {
     const c = await connect();
